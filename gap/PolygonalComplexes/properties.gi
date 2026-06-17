@@ -1108,23 +1108,6 @@ InstallMethod( BoundaryVertices, "for a closed twisted polygonal complex",
         return [];
     end
 );
-# Special case umbrellas are known
-InstallMethod( BoundaryVertices, 
-    "for a polygonal complex with UmbrellaPathsOfVertices",
-    [IsPolygonalComplex and HasUmbrellaPathsOfVertices],
-    function(complex)
-        local isolatedVertices, verticesOfIsolatedEdges;
-
-        isolatedVertices := IsolatedVertices(complex);
-        verticesOfIsolatedEdges := Union(VerticesOfEdges(complex){IsolatedEdges(complex)});
-
-        return Union(
-            __SIMPLICIAL_BoundaryVertices_Umbrellas(complex),
-            isolatedVertices,
-            verticesOfIsolatedEdges
-        );
-    end
-);
 # Special case polygonal surface and boundary edges are known
 InstallMethod( BoundaryVertices, "for a polygonal surface with BoundaryEdges",
     [IsPolygonalSurface and HasBoundaryEdges],
