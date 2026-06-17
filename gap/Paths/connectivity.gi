@@ -79,14 +79,6 @@ InstallMethod( IsConnectedComplex, "for a twisted polygonal complex", [IsTwisted
         fi;
 
         component := __SIMPLICIAL_AbstractConnectedComponent( 
-                        Faces(complex), VerticesOfFaces(complex), 
-                        Faces(complex)[1] );
-
-        if Length( component ) <> NumberOfFaces(complex) then
-            return false;
-        fi;
-
-        component := __SIMPLICIAL_AbstractConnectedComponent( 
                         Edges(complex), VerticesOfEdges(complex), 
                         Edges(complex)[1] );
 
