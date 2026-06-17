@@ -488,14 +488,10 @@ InstallOtherMethod( SubcomplexByFaces,
 InstallMethod( SubcomplexByFacesNC, "for a polygonal complex and a set of faces",
     [IsPolygonalComplex, IsSet],
     function(complex, subfaces)
-	local isolatedEdges, subEdges, subVertices, newVerticesOfEdges, newEdgesOfFaces, e, f,
+	local subEdges, subVertices, newVerticesOfEdges, newEdgesOfFaces, e, f,
 	      subcomplex, colEdges, colEdgesSub, edge;
 
-    isolatedEdges := IsolatedEdges(complex);
-
-    subEdges    := Union( __SIMPLICIAL_UnionSets( EdgesOfFaces(complex){subfaces} ),
-                          isolatedEdges );
-
+    subEdges    := __SIMPLICIAL_UnionSets( EdgesOfFaces(complex){subfaces} );
     subVertices := __SIMPLICIAL_UnionSets( VerticesOfEdges(complex){subEdges} );
 
 	newVerticesOfEdges := [];
