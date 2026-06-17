@@ -182,12 +182,38 @@ InstallMethod( IsStronglyConnectedSurface, "for a surface", [IsPolygonalSurface]
 InstallMethod( ConnectedComponentOfFaceNC, "for a twisted polygonal complex",
     [IsTwistedPolygonalComplex, IsPosInt],
     function(complex, face)
-        local comp, subComp;
+        local comp, subComp, faceEdges, connectedEdges, verticesOfEdges, subVerticesOfEdges,
+              edgesOfFaces, subEdgesOfFaces, e, f;
 
         comp := __SIMPLICIAL_AbstractConnectedComponent(
                     Faces(complex), VerticesOfFaces(complex), face );
 
         subComp := SubcomplexByFacesNC( complex, comp );
+
+        faceEdges := EdgesOfFace(complex, face);
+
+        # Do BFS on vertex-edge relation starting from a vertex of face
+        # and find all reachable vertices and collect all edges of reachable vertices
+        connectedEdges := __SIMPLICIAL_AbstractConnectedComponent( 
+                        Edges(complex),
+                        VerticesOfEdges(complex), 
+                        faceEdges[1] );
+
+        verticesOfEdges := VerticesOfEdges(complex);
+        subVerticesOfEdges := [];
+        for e in connectedEdges do
+            Add(subVerticesOfEdges, verticesOfEdges[e], e);
+        od;
+
+        edgesOfFaces := EdgesOfFaces(complex);
+        subEdgesOfFaces := [];
+        for f in Union(FacesOfEdges(complex){connectedEdges}) do
+            Add(subEdgesOfFaces, edgesOfFaces[f], f);
+        od;
+
+        subComp := PolygonalComplexByDownwardIncidenceNC( subVerticesOfEdges,
+                                                          subEdgesOfFaces );
+
         # this component is connected by construction, so we set the property
         SetIsConnectedComplex( subComp, true );
         return subComp;
