@@ -1756,7 +1756,7 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_DownwardIncidence",
         numFunctionVariants := Length(filters);
 
         for vNr in [1..numFunctionVariants] do
-            installationWrapper := function(typeName, functionName, descriptions, filters)
+            installationWrapper := function(vNr, typeName, functionName, descriptions, filters)
                 local functionNameNC, setterFunc, buildFunc, noCheckFunc, regularFunc;
 
                 functionNameNC := Concatenation(functionName, "NC");
@@ -1814,17 +1814,29 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_DownwardIncidence",
                     return buildFunc(arg, isNoCheck);
                 end;
 
-                InstallOtherMethod( ValueGlobal(functionName),
-                                    descriptions[vNr],
-                                    filters[vNr],
-                                    regularFunc );
+                if vNr = 1 then
+                    InstallMethod( ValueGlobal(functionName),
+                                   descriptions[vNr],
+                                   filters[vNr],
+                                   regularFunc );
 
-                InstallOtherMethod( ValueGlobal(functionNameNC),
-                                    descriptions[vNr],
-                                    filters[vNr],
-                                    noCheckFunc );
+                    InstallMethod( ValueGlobal(functionNameNC),
+                                   descriptions[vNr],
+                                   filters[vNr],
+                                   noCheckFunc );
+                else
+                    InstallOtherMethod( ValueGlobal(functionName),
+                                        descriptions[vNr],
+                                        filters[vNr],
+                                        regularFunc );
+
+                    InstallOtherMethod( ValueGlobal(functionNameNC),
+                                        descriptions[vNr],
+                                        filters[vNr],
+                                        noCheckFunc );
+                fi;
             end;
-            installationWrapper(typeName, functionName, descriptions, filters);
+            installationWrapper(vNr, typeName, functionName, descriptions, filters);
         od;
     od;
 end);
@@ -1898,7 +1910,7 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_UpwardIncidence",
         numFunctionVariants := Length(filters);
 
         for vNr in [1..numFunctionVariants] do
-            installationWrapper := function(typeName, functionName, descriptions, filters)
+            installationWrapper := function(vNr, typeName, functionName, descriptions, filters)
                 local functionNameNC, setterFunc, buildFunc, noCheckFunc, regularFunc;
 
                 functionNameNC := Concatenation(functionName, "NC");
@@ -1945,17 +1957,29 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_UpwardIncidence",
                     return buildFunc(arg, isNoCheck);
                 end;
 
-                InstallOtherMethod( ValueGlobal(functionName),
-                                    descriptions[vNr],
-                                    filters[vNr],
-                                    regularFunc );
+                if vNr = 1 then
+                    InstallMethod( ValueGlobal(functionName),
+                                   descriptions[vNr],
+                                   filters[vNr],
+                                   regularFunc );
 
-                InstallOtherMethod( ValueGlobal(functionNameNC),
-                                    descriptions[vNr],
-                                    filters[vNr],
-                                    noCheckFunc );
+                    InstallMethod( ValueGlobal(functionNameNC),
+                                   descriptions[vNr],
+                                   filters[vNr],
+                                   noCheckFunc );
+                else
+                    InstallOtherMethod( ValueGlobal(functionName),
+                                        descriptions[vNr],
+                                        filters[vNr],
+                                        regularFunc );
+
+                    InstallOtherMethod( ValueGlobal(functionNameNC),
+                                        descriptions[vNr],
+                                        filters[vNr],
+                                        noCheckFunc );
+                fi;
             end;
-            installationWrapper(typeName, functionName, descriptions, filters);
+            installationWrapper(vNr, typeName, functionName, descriptions, filters);
         od;
     od;
 end);
@@ -2132,7 +2156,7 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_VerticesInFaces",
         numFunctionVariants := Length(filters);
 
         for vNr in [1..numFunctionVariants] do
-            installationWrapper := function(typeName, functionName, descriptions, filters)
+            installationWrapper := function(vNr, typeName, functionName, descriptions, filters)
                 local functionNameNC, setterFunc, buildFunc, noCheckFunc, regularFunc;
 
                 functionNameNC := Concatenation(functionName, "NC");
@@ -2220,17 +2244,29 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_VerticesInFaces",
                     return buildFunc(arg, isNoCheck);
                 end;
 
-                InstallOtherMethod( ValueGlobal(functionName),
-                                    descriptions[vNr],
-                                    filters[vNr],
-                                    regularFunc );
+                if vNr = 1 then
+                    InstallMethod( ValueGlobal(functionName),
+                                   descriptions[vNr],
+                                   filters[vNr],
+                                   regularFunc );
 
-                InstallOtherMethod( ValueGlobal(functionNameNC),
-                                    descriptions[vNr],
-                                    filters[vNr],
-                                    noCheckFunc );
+                    InstallMethod( ValueGlobal(functionNameNC),
+                                   descriptions[vNr],
+                                   filters[vNr],
+                                   noCheckFunc );
+                else
+                    InstallOtherMethod( ValueGlobal(functionName),
+                                        descriptions[vNr],
+                                        filters[vNr],
+                                        regularFunc );
+
+                    InstallOtherMethod( ValueGlobal(functionNameNC),
+                                        descriptions[vNr],
+                                        filters[vNr],
+                                        noCheckFunc );
+                fi;
             end;
-            installationWrapper(typeName, functionName, descriptions, filters);
+            installationWrapper(vNr, typeName, functionName, descriptions, filters);
         od;
     od;
 end);
@@ -2256,29 +2292,7 @@ BindGlobal( "__SIMPLICIAL_InstallConstructors",
         textBlockLists := Concatenation("lists", textSuffix);
         textBlockList  := Concatenation("list" , textSuffix);
 
-        if constrVariant in ["DownwardIncidence", "UpwardIncidence"] then
-            descriptions := [
-                Concatenation("for 3 ", textBlockLists, " and 2 lists of ", textBlockLists),
-                Concatenation("for 2 lists ", textBlockLists)
-            ];
-        elif constrVariant = "VerticesInFaces" then
-            descriptions := [
-                Concatenation("for a " , textBlockList)
-            ];
-
-            if isSurfaceConstr then
-                Add( descriptions,
-                     Concatenation("for 2 ", textBlockLists, " and a list of " , textBlockLists),
-                     1 );
-            else
-                Add( descriptions,
-                     Concatenation("for 2 ", textBlockLists, " and 2 lists of " , textBlockLists),
-                     1 );
-            fi;
-        else
-            Error(Concatenation("Build descriptions: unknown constructor name: '",
-                                constrVariant, "'.\n"));
-        fi;
+        descriptions := [];
 
         if not isSurfaceConstr then
             if   constrVariant = "DownwardIncidence" then
@@ -2307,31 +2321,22 @@ BindGlobal( "__SIMPLICIAL_InstallConstructors",
             # as that can be deduced from edgesOfVertices.
         fi;
 
+        if constrVariant in ["DownwardIncidence", "UpwardIncidence"] then
+            Add(descriptions, Concatenation("for 2 ", textBlockLists));
+        elif constrVariant = "VerticesInFaces" then
+            Add(descriptions, Concatenation("for a list of " , textBlockLists));
+        else
+            Error(Concatenation("Build descriptions: unknown constructor name: '",
+                                constrVariant, "'.\n"));
+        fi;
+
         return descriptions;
     end;
     #
     buildFilters := function(constrVariant, isSurfaceConstr)
         local filters, numArgs;
 
-        if constrVariant in ["DownwardIncidence", "UpwardIncidence"] then
-            filters := [
-                List( [1..5], _ -> ValueGlobal("IsList") ),
-                List( [1..2], _ -> ValueGlobal("IsList") ),
-            ];
-        elif constrVariant = "VerticesInFaces" then
-            if isSurfaceConstr then
-                numArgs := 3;
-            else
-                numArgs := 4;
-            fi;
-            filters := [
-                List( [1..numArgs], _ -> ValueGlobal("IsList") ),
-                List( [1]         , _ -> ValueGlobal("IsList") ),
-            ];
-        else
-            Error(Concatenation("Build filters: unknown constructor name: '",
-                                constrVariant, "'.\n"));
-        fi;
+        filters := [];
 
         if not isSurfaceConstr then
             if   constrVariant = "DownwardIncidence" then
@@ -2353,6 +2358,15 @@ BindGlobal( "__SIMPLICIAL_InstallConstructors",
                 # Add isolated vertices optional arg filter
                 Add(filters, List( [1..2], _ -> ValueGlobal("IsList") ));
             fi;
+        fi;
+
+        if constrVariant in ["DownwardIncidence", "UpwardIncidence"] then
+            Add(filters, List( [1..2], _ -> ValueGlobal("IsList") ));
+        elif constrVariant = "VerticesInFaces" then
+            Add(filters, List( [1]   , _ -> ValueGlobal("IsList") ));
+        else
+            Error(Concatenation("Build filters: unknown constructor name: '",
+                                constrVariant, "'.\n"));
         fi;
 
         return filters;
