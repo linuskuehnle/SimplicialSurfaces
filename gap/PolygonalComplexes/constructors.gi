@@ -1786,132 +1786,75 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_DownwardIncidence",
         numFunctionVariants := Length(filters);
 
         for vNr in [1..numFunctionVariants] do
-            installationWrapper := function(typeName, vNr, functionName, descriptions, filters)
+            installationWrapper := function(typeName, functionName, descriptions, filters)
                 local functionNameNC, setterFunc, buildFunc, noCheckFunc, regularFunc;
 
                 functionNameNC := Concatenation(functionName, "NC");
 
                 setterFunc := buildSetterFunc(typeName);
 
-                if vNr = 1 then
-                    # Long filter function installation
+                buildFunc := function(arg, isNoCheck)
+                    local unpackedArgs, verticesOfEdges, edgesOfFaces,
+                            isolatedVertices, verticesDed, allVertices, obj;
 
-                    buildFunc := function(arg, isNoCheck)
-                        local unpackedArgs, allVertices, verticesOfEdges, edgesOfFaces, obj;
+                    if Length(arg) = 1 then
+                        unpackedArgs := arg[1];
+                    else
+                        unpackedArgs := arg;
+                    fi;
 
-                        if Length(arg) = 1 then
-                            unpackedArgs := arg[1];
-                        else
-                            unpackedArgs := arg;
-                        fi;
+                    if Length(unpackedArgs) = 3 then
+                        isolatedVertices := unpackedArgs[1];
+                        verticesOfEdges  := unpackedArgs[2];
+                        edgesOfFaces     := unpackedArgs[3];
+                    else
+                        isolatedVertices := [];
+                        verticesOfEdges  := unpackedArgs[1];
+                        edgesOfFaces     := unpackedArgs[2];
+                    fi;
 
-                        if not isNoCheck then
-                            preCheckFunc(functionName, unpackedArgs);
-                        fi;
+                    if not isNoCheck then
+                        preCheckFunc(functionName, unpackedArgs);
+                    fi;
 
-                        allVertices     := unpackedArgs[1];
-                        verticesOfEdges := unpackedArgs[4];
-                        edgesOfFaces    := unpackedArgs[5];
+                    verticesDed := Union(verticesOfEdges);
+                    allVertices := Union(isolatedVertices, verticesDed);
 
-                        obj := objectBuilder(verticesOfEdges, edgesOfFaces, allVertices);
+                    obj := objectBuilder(verticesOfEdges, edgesOfFaces, allVertices);
 
-                        if not isNoCheck then
-                            postCheckFunc(functionName, typeName, obj);
-                        fi;
+                    if not isNoCheck then
+                        postCheckFunc(functionName, typeName, obj);
+                    fi;
 
-                        setterFunc(obj);
-                        return obj;
-                    end;
+                    setterFunc(obj);
+                    return obj;
+                end;
 
-                    noCheckFunc := function(arg)
-                        local isNoCheck;
+                noCheckFunc := function(arg)
+                    local isNoCheck;
 
-                        isNoCheck := true;
-                        return buildFunc(arg, isNoCheck);
-                    end;
+                    isNoCheck := true;
+                    return buildFunc(arg, isNoCheck);
+                end;
 
-                    regularFunc := function(arg)
-                        local isNoCheck;
+                regularFunc := function(arg)
+                    local isNoCheck;
 
-                        isNoCheck := false;
-                        return buildFunc(arg, isNoCheck);
-                    end;
+                    isNoCheck := false;
+                    return buildFunc(arg, isNoCheck);
+                end;
 
-                    InstallMethod( ValueGlobal(functionName),
-                                   descriptions[vNr],
-                                   filters[vNr],
-                                   regularFunc );
+                InstallOtherMethod( ValueGlobal(functionName),
+                                    descriptions[vNr],
+                                    filters[vNr],
+                                    regularFunc );
 
-                    InstallMethod( ValueGlobal(functionNameNC),
-                                   descriptions[vNr],
-                                   filters[vNr],
-                                   noCheckFunc );
-                else
-                    # Short filter function installation
-
-                    buildFunc := function(arg, isNoCheck)
-                        local unpackedArgs, verticesOfEdges, edgesOfFaces,
-                              isolatedVertices, verticesDed, allVertices, obj;
-
-                        if Length(arg) = 1 then
-                            unpackedArgs := arg[1];
-                        else
-                            unpackedArgs := arg;
-                        fi;
-
-                        if Length(unpackedArgs) = 3 then
-                            isolatedVertices := unpackedArgs[1];
-                            verticesOfEdges  := unpackedArgs[2];
-                            edgesOfFaces     := unpackedArgs[3];
-                        else
-                            isolatedVertices := [];
-                            verticesOfEdges  := unpackedArgs[1];
-                            edgesOfFaces     := unpackedArgs[2];
-                        fi;
-
-                        if not isNoCheck then
-                            preCheckFunc(functionName, unpackedArgs);
-                        fi;
-
-                        verticesDed := Union(verticesOfEdges);
-                        allVertices := Union(isolatedVertices, verticesDed);
-
-                        obj := objectBuilder(verticesOfEdges, edgesOfFaces, allVertices);
-
-                        if not isNoCheck then
-                            postCheckFunc(functionName, typeName, obj);
-                        fi;
-
-                        setterFunc(obj);
-                        return obj;
-                    end;
-
-                    noCheckFunc := function(arg)
-                        local isNoCheck;
-
-                        isNoCheck := true;
-                        return buildFunc(arg, isNoCheck);
-                    end;
-
-                    regularFunc := function(arg)
-                        local isNoCheck;
-
-                        isNoCheck := false;
-                        return buildFunc(arg, isNoCheck);
-                    end;
-
-                    InstallOtherMethod( ValueGlobal(functionName),
-                                        descriptions[vNr],
-                                        filters[vNr],
-                                        regularFunc );
-
-                    InstallOtherMethod( ValueGlobal(functionNameNC),
-                                        descriptions[vNr],
-                                        filters[vNr],
-                                        noCheckFunc );
-                fi;
+                InstallOtherMethod( ValueGlobal(functionNameNC),
+                                    descriptions[vNr],
+                                    filters[vNr],
+                                    noCheckFunc );
             end;
-            installationWrapper(typeName, vNr, functionName, descriptions, filters);
+            installationWrapper(typeName, functionName, descriptions, filters);
         od;
     od;
 end);
@@ -2004,120 +1947,64 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_UpwardIncidence",
         numFunctionVariants := Length(filters);
 
         for vNr in [1..numFunctionVariants] do
-            installationWrapper := function(typeName, vNr, functionName, descriptions, filters)
+            installationWrapper := function(typeName, functionName, descriptions, filters)
                 local functionNameNC, setterFunc, buildFunc, noCheckFunc, regularFunc;
 
                 functionNameNC := Concatenation(functionName, "NC");
 
                 setterFunc := buildSetterFunc(typeName);
 
-                if vNr = 1 then
-                    # Long filter function installation
+                buildFunc := function(arg, isNoCheck)
+                    local unpackedArgs, verticesOfEdges, edgesOfFaces, obj;
 
-                    buildFunc := function(arg, isNoCheck)
-                        local unpackedArgs, edgesOfVertices, facesOfEdges, obj;
+                    if Length(arg) = 1 then
+                        unpackedArgs := arg[1];
+                    else
+                        unpackedArgs := arg;
+                    fi;
 
-                        if Length(arg) = 1 then
-                            unpackedArgs := arg[1];
-                        else
-                            unpackedArgs := arg;
-                        fi;
+                    if not isNoCheck then
+                        preCheckFunc(functionName, unpackedArgs);
+                    fi;
 
-                        if not isNoCheck then
-                            preCheckFunc(functionName, unpackedArgs);
-                        fi;
+                    verticesOfEdges := unpackedArgs[1];
+                    edgesOfFaces    := unpackedArgs[2];
 
-                        edgesOfVertices := unpackedArgs[4];
-                        facesOfEdges    := unpackedArgs[5];
+                    obj := objectBuilder(verticesOfEdges, edgesOfFaces);
 
-                        obj := objectBuilder(edgesOfVertices, facesOfEdges);
+                    if not isNoCheck then
+                        postCheckFunc(functionName, typeName, obj);
+                    fi;
 
-                        if not isNoCheck then
-                            postCheckFunc(functionName, typeName, obj);
-                        fi;
+                    setterFunc(obj);
+                    return obj;
+                end;
 
-                        setterFunc(obj);
-                        return obj;
-                    end;
+                noCheckFunc := function(arg)
+                    local isNoCheck;
 
-                    noCheckFunc := function(arg)
-                        local isNoCheck;
+                    isNoCheck := true;
+                    return buildFunc(arg, isNoCheck);
+                end;
 
-                        isNoCheck := true;
-                        return buildFunc(arg, isNoCheck);
-                    end;
+                regularFunc := function(arg)
+                    local isNoCheck;
 
-                    regularFunc := function(arg)
-                        local isNoCheck;
+                    isNoCheck := false;
+                    return buildFunc(arg, isNoCheck);
+                end;
 
-                        isNoCheck := false;
-                        return buildFunc(arg, isNoCheck);
-                    end;
+                InstallOtherMethod( ValueGlobal(functionName),
+                                    descriptions[vNr],
+                                    filters[vNr],
+                                    regularFunc );
 
-                    InstallMethod( ValueGlobal(functionName),
-                                   descriptions[vNr],
-                                   filters[vNr],
-                                   regularFunc );
-
-                    InstallMethod( ValueGlobal(functionNameNC),
-                                   descriptions[vNr],
-                                   filters[vNr],
-                                   noCheckFunc );
-                else
-                    # Short filter function installation
-
-                    buildFunc := function(arg, isNoCheck)
-                        local unpackedArgs, verticesOfEdges, edgesOfFaces, obj;
-
-                        if Length(arg) = 1 then
-                            unpackedArgs := arg[1];
-                        else
-                            unpackedArgs := arg;
-                        fi;
-
-                        if not isNoCheck then
-                            preCheckFunc(functionName, unpackedArgs);
-                        fi;
-
-                        verticesOfEdges := unpackedArgs[1];
-                        edgesOfFaces    := unpackedArgs[2];
-
-                        obj := objectBuilder(verticesOfEdges, edgesOfFaces);
-
-                        if not isNoCheck then
-                            postCheckFunc(functionName, typeName, obj);
-                        fi;
-
-                        setterFunc(obj);
-                        return obj;
-                    end;
-
-                    noCheckFunc := function(arg)
-                        local isNoCheck;
-
-                        isNoCheck := true;
-                        return buildFunc(arg, isNoCheck);
-                    end;
-
-                    regularFunc := function(arg)
-                        local isNoCheck;
-
-                        isNoCheck := false;
-                        return buildFunc(arg, isNoCheck);
-                    end;
-
-                    InstallOtherMethod( ValueGlobal(functionName),
-                                        descriptions[vNr],
-                                        filters[vNr],
-                                        regularFunc );
-
-                    InstallOtherMethod( ValueGlobal(functionNameNC),
-                                        descriptions[vNr],
-                                        filters[vNr],
-                                        noCheckFunc );
-                fi;
+                InstallOtherMethod( ValueGlobal(functionNameNC),
+                                    descriptions[vNr],
+                                    filters[vNr],
+                                    noCheckFunc );
             end;
-            installationWrapper(typeName, vNr, functionName, descriptions, filters);
+            installationWrapper(typeName, functionName, descriptions, filters);
         od;
     od;
 end);
@@ -2321,167 +2208,105 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_VerticesInFaces",
         numFunctionVariants := Length(filters);
 
         for vNr in [1..numFunctionVariants] do
-            installationWrapper := function(typeName, vNr, functionName, descriptions, filters)
+            installationWrapper := function(typeName, functionName, descriptions, filters)
                 local functionNameNC, setterFunc, buildFunc, noCheckFunc, regularFunc;
 
                 functionNameNC := Concatenation(functionName, "NC");
 
                 setterFunc := buildSetterFunc(typeName);
 
-                if vNr = 1 then
-                    # Long filter function installation
+                buildFunc := function(arg, isNoCheck)
+                    local unpackedArgs, verticesOfFaces, isolatedVertices,
+                            verticesOfIsolatedEdges, verticesDed, unifiedVerticesOfFaces,
+                            unifiedVerticesOfIsolatedEdges, allVertices, obj;
 
-                    buildFunc := function(arg, isNoCheck)
-                        local unpackedArgs, allVertices, verticesOfFaces,
-                              verticesOfIsolatedEdges,  obj;
+                    # Testing for arg length = 1 is not enough since short filter
+                    # constructor can also just have one argument (verticesInFaces).
+                    # So instead we test for nesting level by checking if the value
+                    # at arg[1][1][1] is a list:
+                    # - normal arg: arg[1]: verticesInFaces ,arg[1][1]: verticesInFaces[1],
+                    #               arg[1][1][1]: verticesInFaces[1][1] is a vertex label,
+                    #               hence it is an int
+                    # - nested arg: arg[1]:[verticesInFaces],arg[1][1]: verticesInFaces,
+                    #               arg[1][1][1]: verticesInFaces[1] is a list
+                    if Length(arg) = 1 and Length(arg[1]) > 0 and Length(arg[1][1]) > 0 and
+                        IsList(arg[1][1][1]) then
+                        unpackedArgs := arg[1];
+                    else
+                        unpackedArgs := arg;
+                    fi;
 
-                        if Length(arg) = 1 then
-                            unpackedArgs := arg[1];
-                        else
-                            unpackedArgs := arg;
-                        fi;
+                    if not isNoCheck then
+                        preCheckFunc(functionName, unpackedArgs);
+                    fi;
 
-                        if not isNoCheck then
-                            preCheckFunc(functionName, unpackedArgs);
-                        fi;
+                    verticesOfIsolatedEdges := [];
+                    isolatedVertices        := [];
+                    if   Length(unpackedArgs) = 1 then
+                        verticesOfFaces := unpackedArgs[1];
+                    elif  Length(unpackedArgs) = 2 then
+                        verticesOfFaces := unpackedArgs[2];
 
-                        allVertices     := unpackedArgs[1];
-                        verticesOfFaces := unpackedArgs[3];
-                        if Length(unpackedArgs) = 4 then
-                            verticesOfIsolatedEdges := unpackedArgs[4];
-                        else
-                            verticesOfIsolatedEdges := [];
-                        fi;
-
-                        obj := objectBuilder(verticesOfFaces, allVertices, verticesOfIsolatedEdges);
-
-                        if not isNoCheck then
-                            postCheckFunc(functionName, typeName, obj);
-                        fi;
-
-                        setterFunc(obj);
-                        return obj;
-                    end;
-
-                    noCheckFunc := function(arg)
-                        local isNoCheck;
-
-                        isNoCheck := true;
-                        return buildFunc(arg, isNoCheck);
-                    end;
-
-                    regularFunc := function(arg)
-                        local isNoCheck;
-
-                        isNoCheck := false;
-                        return buildFunc(arg, isNoCheck);
-                    end;
-
-                    InstallMethod( ValueGlobal(functionName),
-                                   descriptions[vNr],
-                                   filters[vNr],
-                                   regularFunc );
-
-                    InstallMethod( ValueGlobal(functionNameNC),
-                                   descriptions[vNr],
-                                   filters[vNr],
-                                   noCheckFunc );
-                else
-                    # Short filter function installation
-
-                    buildFunc := function(arg, isNoCheck)
-                        local unpackedArgs, verticesOfFaces, isolatedVertices,
-                              verticesOfIsolatedEdges, verticesDed, unifiedVerticesOfFaces,
-                              unifiedVerticesOfIsolatedEdges, allVertices, obj;
-
-                        # Testing for arg length = 1 is not enough since short filter
-                        # constructor can also just have one argument (verticesInFaces).
-                        # So instead we test for nesting level by checking if the value
-                        # at arg[1][1][1] is a list:
-                        # - normal arg: arg[1]: verticesInFaces ,arg[1][1]: verticesInFaces[1],
-                        #               arg[1][1][1]: verticesInFaces[1][1] is a vertex label,
-                        #               hence it is an int
-                        # - nested arg: arg[1]:[verticesInFaces],arg[1][1]: verticesInFaces,
-                        #               arg[1][1][1]: verticesInFaces[1] is a list
-                        if Length(arg) = 1 and Length(arg[1]) > 0 and Length(arg[1][1]) > 0 and
-                           IsList(arg[1][1][1]) then
-                            unpackedArgs := arg[1];
-                        else
-                            unpackedArgs := arg;
-                        fi;
-
-                        if not isNoCheck then
-                            preCheckFunc(functionName, unpackedArgs);
-                        fi;
-
-                        verticesOfIsolatedEdges := [];
-                        isolatedVertices        := [];
-                        if   Length(unpackedArgs) = 1 then
-                            verticesOfFaces := unpackedArgs[1];
-                        elif  Length(unpackedArgs) = 2 then
-                            verticesOfFaces := unpackedArgs[2];
-
-                            if Length(unpackedArgs[1]) > 0 then
-                                if IsPosInt(unpackedArgs[1][1]) then
-                                    isolatedVertices        := unpackedArgs[1];
-                                else
-                                    verticesOfIsolatedEdges := unpackedArgs[1];
-                                fi;
-                            fi;
-                        elif Length(unpackedArgs) = 3 then
-                            verticesOfFaces := unpackedArgs[3];
-
-                            if ( Length(unpackedArgs[1]) > 0 and IsPosInt(unpackedArgs[1][1]) ) or
-                               ( Length(unpackedArgs[2]) > 0 and IsList  (unpackedArgs[2][1]) ) then
+                        if Length(unpackedArgs[1]) > 0 then
+                            if IsPosInt(unpackedArgs[1][1]) then
                                 isolatedVertices        := unpackedArgs[1];
-                                verticesOfIsolatedEdges := unpackedArgs[2];
+                            else
+                                verticesOfIsolatedEdges := unpackedArgs[1];
                             fi;
                         fi;
+                    elif Length(unpackedArgs) = 3 then
+                        verticesOfFaces := unpackedArgs[3];
 
-                        unifiedVerticesOfFaces         := Union(verticesOfFaces);
-                        unifiedVerticesOfIsolatedEdges := Union(verticesOfIsolatedEdges);
-
-                        verticesDed := Union( unifiedVerticesOfFaces,
-                                              unifiedVerticesOfIsolatedEdges );
-                        allVertices := Union( isolatedVertices,
-                                              verticesDed );
-
-                        obj := objectBuilder(verticesOfFaces, allVertices, verticesOfIsolatedEdges);
-
-                        if not isNoCheck then
-                            postCheckFunc(functionName, typeName, obj);
+                        if ( Length(unpackedArgs[1]) > 0 and IsPosInt(unpackedArgs[1][1]) ) or
+                            ( Length(unpackedArgs[2]) > 0 and IsList  (unpackedArgs[2][1]) ) then
+                            isolatedVertices        := unpackedArgs[1];
+                            verticesOfIsolatedEdges := unpackedArgs[2];
                         fi;
+                    fi;
 
-                        setterFunc(obj);
-                        return obj;
-                    end;
+                    unifiedVerticesOfFaces         := Union(verticesOfFaces);
+                    unifiedVerticesOfIsolatedEdges := Union(verticesOfIsolatedEdges);
 
-                    noCheckFunc := function(arg)
-                        local isNoCheck;
+                    verticesDed := Union( unifiedVerticesOfFaces,
+                                            unifiedVerticesOfIsolatedEdges );
+                    allVertices := Union( isolatedVertices,
+                                            verticesDed );
 
-                        isNoCheck := true;
-                        return buildFunc(arg, isNoCheck);
-                    end;
+                    obj := objectBuilder(verticesOfFaces, allVertices, verticesOfIsolatedEdges);
 
-                    regularFunc := function(arg)
-                        local isNoCheck;
+                    if not isNoCheck then
+                        postCheckFunc(functionName, typeName, obj);
+                    fi;
 
-                        isNoCheck := false;
-                        return buildFunc(arg, isNoCheck);
-                    end;
+                    setterFunc(obj);
+                    return obj;
+                end;
 
-                    InstallOtherMethod( ValueGlobal(functionName),
-                                        descriptions[vNr],
-                                        filters[vNr],
-                                        regularFunc );
+                noCheckFunc := function(arg)
+                    local isNoCheck;
 
-                    InstallOtherMethod( ValueGlobal(functionNameNC),
-                                        descriptions[vNr],
-                                        filters[vNr],
-                                        noCheckFunc );
-                fi;
+                    isNoCheck := true;
+                    return buildFunc(arg, isNoCheck);
+                end;
+
+                regularFunc := function(arg)
+                    local isNoCheck;
+
+                    isNoCheck := false;
+                    return buildFunc(arg, isNoCheck);
+                end;
+
+                InstallOtherMethod( ValueGlobal(functionName),
+                                    descriptions[vNr],
+                                    filters[vNr],
+                                    regularFunc );
+
+                InstallOtherMethod( ValueGlobal(functionNameNC),
+                                    descriptions[vNr],
+                                    filters[vNr],
+                                    noCheckFunc );
             end;
-            installationWrapper(typeName, vNr, functionName, descriptions, filters);
+            installationWrapper(typeName, functionName, descriptions, filters);
         od;
     od;
 end);

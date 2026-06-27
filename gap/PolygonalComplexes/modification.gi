@@ -504,8 +504,7 @@ InstallMethod( SubcomplexByFacesNC, "for a polygonal complex and a set of faces"
 	    newEdgesOfFaces[f] := EdgesOfFaces(complex)[f];
 	od;
 
-	subcomplex := PolygonalComplexByDownwardIncidenceNC( subVertices, subEdges,
-			        subfaces, newVerticesOfEdges, newEdgesOfFaces );
+	subcomplex := PolygonalComplexByDownwardIncidenceNC( newVerticesOfEdges, newEdgesOfFaces );
 
 	if IsEdgeColouredPolygonalComplex(complex) then
 		colEdges    := ColoursOfEdges(complex);

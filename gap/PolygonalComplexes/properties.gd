@@ -32,7 +32,7 @@
 #! Image omitted in terminal text
             #! </Alt>
 #! @ExampleSession
-#! gap> fiveStar := SimplicialSurfaceByVerticesInFaces( [1,2,3,5,7,11], [1..5],
+#! gap> fiveStar := SimplicialSurfaceByVerticesInFaces(
 #! >                [ [1,2,3], [1,3,5], [1,5,7], [1,7,11], [1,2,11] ] );;
 #! @EndExampleSession
 #!
