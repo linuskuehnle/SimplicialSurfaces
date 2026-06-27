@@ -1679,27 +1679,17 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_DownwardIncidence",
         return obj;
     end;
     preCheckFunc := function(functionName, arg)
-        local numArgs, isLongFilter, isComplexConstr, vertices, edges, faces,
-              verticesOfEdges, edgesOfFaces, isolatedVertices, hasIsolatedVertices,
-              verticesDed, edgesDed, facesDed, verticesExp, edgesExp, isolatedVerticesExp;
+        local numArgs, isComplexConstr, verticesOfEdges, edgesOfFaces, isolatedVertices,
+              hasIsolatedVertices, verticesDed, edgesDed, facesDed, verticesExp, edgesExp,
+              isolatedVerticesExp;
 
         numArgs := Length(arg);
 
         isComplexConstr := PositionSublist(functionName, "Complex") <> fail;
-        isLongFilter    := numArgs = 5;
 
         isolatedVertices := [];
 
-        if isLongFilter then
-            vertices := arg[1];
-            edges    := arg[2];
-            faces    := arg[3];
-
-            basePreCheckFunc(functionName, vertices, edges, faces);
-
-            verticesOfEdges  := arg[4];
-            edgesOfFaces     := arg[5];
-        elif numArgs = 2 then
+        if numArgs = 2 then
             verticesOfEdges  := arg[1];
             edgesOfFaces     := arg[2];
         elif numArgs = 3 and isComplexConstr then
@@ -1726,44 +1716,24 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_DownwardIncidence",
         facesDed    := PositionsBound(edgesOfFaces);
 
         # Compare the vertex, edge and face data
-        if isLongFilter then
-            if isComplexConstr then
+        if isComplexConstr then
+            if hasIsolatedVertices then
                 # Allow isolated vertices
-                verticesExp := Filtered( vertices, v -> v in verticesDed );
+                isolatedVerticesExp := Filtered( isolatedVertices,
+                                                    v -> not v in verticesDed );
 
-                # Allow isolated edges
-                edgesExp    := Filtered( edges, e -> e in edgesDed );
-            else
-                # Do not allow isolated vertices
-                verticesExp := vertices;
-
-                # Do not allow isolated edges
-                edgesExp    := edges;
+                __SIMPLICIAL_CompareSets( functionName, isolatedVerticesExp,
+                                            isolatedVertices, "vertex" );
             fi;
 
-            __SIMPLICIAL_CompareSets( functionName, verticesExp, verticesDed, "vertex" );
-            __SIMPLICIAL_CompareSets( functionName, edgesExp   , edgesDed   , "edge"   );
-            __SIMPLICIAL_CompareSets( functionName, faces      , facesDed   , "face"   );
+            # Allow isolated edges
+            edgesExp := Filtered( edgesDed, e -> e in Union(edgesOfFaces) );
         else
-            if isComplexConstr then
-                if hasIsolatedVertices then
-                    # Allow isolated vertices
-                    isolatedVerticesExp := Filtered( isolatedVertices,
-                                                     v -> not v in verticesDed );
-
-                    __SIMPLICIAL_CompareSets( functionName, isolatedVerticesExp,
-                                              isolatedVertices, "vertex" );
-                fi;
-
-                # Allow isolated edges
-                edgesExp := Filtered( edgesDed, e -> e in Union(edgesOfFaces) );
-            else
-                # Do not allow isolated edges
-                edgesExp := edgesDed;
-            fi;
-
-            __SIMPLICIAL_CompareSets( functionName, edgesExp, Union(edgesOfFaces), "edge" );
+            # Do not allow isolated edges
+            edgesExp := edgesDed;
         fi;
+
+        __SIMPLICIAL_CompareSets( functionName, edgesExp, Union(edgesOfFaces), "edge" );
 
         # Guarantee basic size restrictions
         __SIMPLICIAL_TwoVerticesPerEdge( functionName, verticesOfEdges       );
@@ -1890,23 +1860,11 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_UpwardIncidence",
         return obj;
     end;
     preCheckFunc := function(functionName, arg)
-        local numArgs, isLongFilter, vertices, edges, faces, edgesOfVertices,
-              facesOfEdges, facesDed, edgesDed, verticesDed;
+        local numArgs, edgesOfVertices, facesOfEdges, facesDed, edgesDed, verticesDed;
 
         numArgs := Length(arg);
 
-        isLongFilter := numArgs = 5;
-
-        if isLongFilter then
-            vertices        := arg[1];
-            edges           := arg[2];
-            faces           := arg[3];
-
-            basePreCheckFunc(functionName, vertices, edges, faces);
-
-            edgesOfVertices := arg[4];
-            facesOfEdges    := arg[5];
-        elif numArgs = 2 then
+        if numArgs = 2 then
             edgesOfVertices := arg[1];
             facesOfEdges    := arg[2];
         else
@@ -1918,13 +1876,6 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_UpwardIncidence",
         facesDed    := Union(facesOfEdges);
         edgesDed    := PositionsBound(facesOfEdges);
         verticesDed := PositionsBound(edgesOfVertices);
-        
-        # Compare the vertex, edge and face data
-        if isLongFilter then
-            __SIMPLICIAL_CompareSets( functionName, vertices, verticesDed, "vertex" );
-            __SIMPLICIAL_CompareSets( functionName, edges   , edgesDed   , "edge"   );
-            __SIMPLICIAL_CompareSets( functionName, faces   , facesDed   , "face"   );
-        fi;
 
         __SIMPLICIAL_CompareSets( functionName, edgesDed, Union(edgesOfVertices), "edge" );
     end;
@@ -2059,32 +2010,18 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_VerticesInFaces",
         return obj;
     end;
     preCheckFunc := function(functionName, arg)
-        local numArgs, isLongFilter, isComplexConstr, vertices, faces,
-              verticesOfFaces, verticesOfIsolatedEdges, isolatedVertices,
-              hasIsolatedEdges, hasIsolatedVertices, isolatedVerticesExp,
+        local numArgs, isComplexConstr, verticesOfFaces, verticesOfIsolatedEdges,
+              isolatedVertices, hasIsolatedEdges, hasIsolatedVertices, isolatedVerticesExp,
               verticesDed, facesDed, verticesExp, edgeVertices, allVertices;
 
         numArgs := Length(arg);
 
         isComplexConstr := PositionSublist(functionName, "Complex") <> fail;
-        isLongFilter    := (numArgs = 4 and isComplexConstr) or
-                           (numArgs = 3 and not isComplexConstr);
 
         verticesOfIsolatedEdges := [];
         isolatedVertices        := [];
 
-        if   isLongFilter then
-            vertices := arg[1];
-            faces    := arg[2];
-
-            basePreCheckFunc(functionName, vertices, [], faces);
-
-            verticesOfFaces         := arg[3];
-
-            if isComplexConstr then
-                verticesOfIsolatedEdges := arg[4];
-            fi;
-        elif numArgs = 1 then
+        if numArgs = 1 then
             verticesOfFaces  := arg[1];
         elif numArgs = 2 and isComplexConstr then
             verticesOfFaces  := arg[2];
@@ -2134,25 +2071,12 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_VerticesInFaces",
         facesDed    := PositionsBound(verticesOfFaces);
         
         # Compare the vertex and face data
-        if isLongFilter then
-            if isComplexConstr then
-                # Allow isolated vertices
-                verticesExp := Filtered( vertices, v -> v in verticesDed );
-            else
-                # Do not allow isolated vertices
-                verticesExp := verticesDed;
-            fi;
+        if isComplexConstr and hasIsolatedVertices then                
+            # Allow isolated vertices
+            isolatedVerticesExp := Filtered( isolatedVertices, v -> not v in verticesDed );
 
-            __SIMPLICIAL_CompareSets( functionName, verticesExp, verticesDed, "vertex" );
-            __SIMPLICIAL_CompareSets( functionName, faces      , facesDed   , "face"   );
-        else
-            if isComplexConstr and hasIsolatedVertices then                
-                # Allow isolated vertices
-                isolatedVerticesExp := Filtered( isolatedVertices, v -> not v in verticesDed );
-
-                __SIMPLICIAL_CompareSets( functionName, isolatedVerticesExp,
-                                          isolatedVertices, "vertex" );
-            fi;
+            __SIMPLICIAL_CompareSets( functionName, isolatedVerticesExp,
+                                        isolatedVertices, "vertex" );
         fi;
 
         if isComplexConstr and hasIsolatedEdges then
