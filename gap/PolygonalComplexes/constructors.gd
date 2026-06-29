@@ -172,21 +172,13 @@
 
 ## Here we write part of the documentation that is the same over the 
 ## different versions
-#! @BeginChunk Documentation_DownwardIncidence
+#! @BeginChunk Documentation_SurfaceByDownwardIncidence
 #! where vertices, edges and faces are represented by positive integers.
 #! It is based on the attributes
 #! <K>VerticesOfEdges</K> (<Ref Subsect="VerticesOfEdges"/>) and 
 #! <K>EdgesOfFaces</K> (<Ref Subsect="EdgesOfFaces"/>) and takes these
 #! arguments:
 #! <Enum>
-#!   <Item>OPTIONAL: Each of the optional arguments <A>vertices</A>, 
-#!          <A>edges</A> and <A>faces</A> is either a set of positive
-#!          integers or a positive integer. In the latter case, an integer
-#!          <M>n</M> represents the set <M>[1,...,n]</M>.
-#!          
-#!          Although these arguments can be deduced from the non-optional
-#!          arguments, their use is recommended to catch mistakes in these
-#!          other arguments.</Item>
 #!   <Item> <K>verticesOfEdges</K>: A list that has an entry for each edge (a
 #!          positive integer).
 #!          This entry has to be a list of the two 
@@ -201,28 +193,56 @@
 #! answer to each of the following questions is true. None of these checks 
 #! will be
 #! performed by the NC-version.
-#! * Are the optional arguments <A>vertices</A>, <A>edges</A> and <A>faces</A>
-#!   either positive integers or sets of positive integers?
 #! * Are <A>verticesOfEdges</A> and <A>edgesOfFaces</A> lists where the 
 #!   entries are lists of positive integers?
 #! * Is every bound entry of <A>verticesOfEdges</A> a list with exactly two 
 #!   entries that are different?
 #! * Does every bound entry of <A>edgesOfFaces</A> contain at least two 
 #!   elements?
-#! * If <A>vertices</A> is given, is 
-#!   <K>Union</K>(<A>verticesOfEdges</A>) = <A>vertices</A>?
 #! * Are the bound positions of <A>verticesOfEdges</A> equal to 
-#!   <K>Union</K>(<A>edgesOfFaces</A>)? If <A>edges</A> is given, is it equal 
-#!   to those two sets?
-#! * If <A>faces</A> is given, is it equal to the bound positions of 
-#!   <A>edgesOfFaces</A>?
+#!   <K>Union</K>(<A>edgesOfFaces</A>)?
+#! @EndChunk
+
+#! @BeginChunk Documentation_ComplexByDownwardIncidence
+#! where vertices, edges and faces are represented by positive integers.
+#! It is based on the attributes
+#! <K>VerticesOfEdges</K> (<Ref Subsect="VerticesOfEdges"/>) and 
+#! <K>EdgesOfFaces</K> (<Ref Subsect="EdgesOfFaces"/>) and takes these
+#! arguments:
+#! <Enum>
+#!   <Item>OPTIONAL <K>isolatedVertices</K>: A list of positive integers
+#!          labeling all vertices with no edge incidence.</Item>
+#!   <Item> <K>verticesOfEdges</K>: A list that has an entry for each edge (a
+#!          positive integer).
+#!          This entry has to be a list of the two 
+#!          vertices (as positive integers) of this edge.</Item>
+#!   <Item> <K>edgesOfFaces</K>: A list that has an entry for each face (a
+#!          positive integer).
+#!          This entry has to be a list of the edges 
+#!          (as positive integers) of this face.</Item>
+#! </Enum>
+#!
+#! The method checks whether the
+#! answer to each of the following questions is true. None of these checks 
+#! will be
+#! performed by the NC-version.
+#! * Are <A>verticesOfEdges</A> and <A>edgesOfFaces</A> lists where the 
+#!   entries are lists of positive integers?
+#! * Is every bound entry of <A>verticesOfEdges</A> a list with exactly two 
+#!   entries that are different?
+#! * Does every bound entry of <A>edgesOfFaces</A> contain at least two 
+#!   elements?
+#! * Are the bound positions of <A>verticesOfEdges</A> equal to 
+#!   <K>Union</K>(<A>edgesOfFaces</A>)?
+#! * If <A>isolatedVertices</A> is given, is it a set, and is the intersection
+#!   of <A>isolatedVertices</A> and <K>Union</K>(<A>verticesOfEdges</A>) empty?
 #! @EndChunk
 
 #! @BeginGroup
 #! @Description
 #! This method constructs a polygonal complex 
 #! (<Ref Sect="PolygonalStructures_complex"/>)
-#! @InsertChunk Documentation_DownwardIncidence
+#! @InsertChunk Documentation_ComplexByDownwardIncidence
 #! 
 #! As an example consider the following net of a polygonal complex (note, there
 #! are both vertex and edge ramifications):
@@ -260,7 +280,7 @@ DeclareOperation( "PolygonalComplexByDownwardIncidenceNC", [IsList, IsList, IsLi
 #! @Description
 #! This method constructs a polygonal surface
 #! (<Ref Sect="PolygonalStructures_surface"/>)
-#! @InsertChunk Documentation_DownwardIncidence
+#! @InsertChunk Documentation_SurfaceByDownwardIncidence
 #!
 #! As an example consider the following net of a simplicial surface:
  
@@ -301,7 +321,7 @@ DeclareOperation( "PolygonalSurfaceByDownwardIncidenceNC", [IsList, IsList] );
 #! @Description
 #! This method constructs a triangular complex
 #! (<Ref Sect="PolygonalStructures_complex"/>)
-#! @InsertChunk Documentation_DownwardIncidence
+#! @InsertChunk Documentation_ComplexByDownwardIncidence
 #!
 #! As an example consider the following net of a triangular complex (at the
 #! vertices and edges marked red, there are ramifications):
@@ -424,7 +444,7 @@ DeclareOperation( "SimplicialComplexByDownwardIncidenceNC", [IsList, IsList, IsL
 #! @Description
 #! This method constructs a simplicial surface
 #! (<Ref Sect="PolygonalStructures_surface"/>)
-#! @InsertChunk Documentation_DownwardIncidence
+#! @InsertChunk Documentation_SurfaceByDownwardIncidence
 #!
 #! As an example consider the following net of a simplicial surface:
  
@@ -549,14 +569,6 @@ DeclareOperation( "SimplicialSurfaceByDownwardIncidenceNC", [IsList, IsList] );
 #! <K>FacesOfEdges</K> (<Ref Subsect="FacesOfEdges"/>) and takes these
 #! arguments:
 #! <Enum>
-#!   <Item>OPTIONAL: Each of the optional arguments <A>vertices</A>, 
-#!          <A>edges</A> and <A>faces</A> is either a set of positive
-#!          integers or a positive integer. In the latter case, an integer
-#!          <M>n</M> represents the set <M>[1,...,n]</M>.
-#!          
-#!          Although these arguments can be deduced from the non-optional
-#!          arguments, their use is recommended to catch mistakes in these
-#!          other arguments.</Item>
 #!   <Item> <K>edgesOfVertices</K>: A list that has an entry for each vertex (a
 #!          positive integer).
 #!          This entry has to be a list of the incident
@@ -571,8 +583,6 @@ DeclareOperation( "SimplicialSurfaceByDownwardIncidenceNC", [IsList, IsList] );
 #! answer to each of the following questions is true. None of these checks 
 #! will be
 #! performed by the NC-version.
-#! * Are the optional arguments <A>vertices</A>, <A>edges</A> and <A>faces</A>
-#!   either positive integers or sets of positive integers?
 #! * Are <A>edgesOfVertices</A> and <A>facesOfEdges</A> lists where the 
 #!   entries are lists of positive integers?
 #! * Does every edge of the resulting polygonal complex has exactly two
@@ -581,13 +591,8 @@ DeclareOperation( "SimplicialSurfaceByDownwardIncidenceNC", [IsList, IsList] );
 #!   incident edges?
 #! * Does every bound entry of <A>edgesOfFaces</A> contain at least two 
 #!   elements?
-#! * If <A>vertices</A> is given, is it equal to the bound positions of
-#!   <A>edgesOfVertices</A>?
 #! * Are the bound positions of <A>facesOfEdges</A> equal to 
-#!   <K>Union</K>(<A>edgesOfVertices</A>)? If <A>edges</A> is given, is it equal 
-#!   to those two sets?
-#! * If <A>faces</A> is given, is it equal to 
-#!   <K>Union</K>(<A>facesOfEdges</A>)?
+#!   <K>Union</K>(<A>edgesOfVertices</A>)?
 #! @EndChunk
 
 #! @BeginGroup
@@ -931,43 +936,68 @@ DeclareOperation( "SimplicialSurfaceByUpwardIncidenceNC", [IsList, IsList] );
 #! @EndExampleSession
 #! 
 
-#! @BeginChunk Documentation_VerticesInFaces
+#! @BeginChunk Documentation_SurfaceByVerticesInFaces
 #! where vertices, edges and faces are represented by positive integers.
 #! It is based on the attributes
 #! <K>VerticesOfFaces</K> (<Ref Subsect="VerticesOfFaces"/>) and 
 #! requires that the edges be uniquely defined by their incident vertices.
 #! It takes the following arguments:
 #! <Enum>
-#!   <Item>OPTIONAL: Each of the optional arguments <A>vertices</A>, 
-#!          <A>edges</A> and <A>faces</A> is either a set of positive
-#!          integers or a positive integer. In the latter case, an integer
-#!          <M>n</M> represents the set <M>[1,...,n]</M>.
-#!          
-#!          Although these arguments can be deduced from the non-optional
-#!          arguments, their use is recommended to catch mistakes in these
-#!          other arguments.</Item>
 #!   <Item> <K>verticesInFaces</K>: A list that has an entry for each positive
 #!          integer corresponding to a face. This entry is a list of positive
 #!          integers <M>[v_1, v_2 , ..., v_k ]</M>, each corresponding to
 #!          a vertex incident to the face. Moreover, two consecutive vertices
 #!          in this list are the vertices of an edge incident to the face  
-#!          (here the first and last vertex count as consecutive). 
-#!   </Item>
+#!          (here the first and last vertex count as consecutive).</Item>
 #! </Enum>
 #!
 #! The method checks whether the
 #! answer to each of the following questions is true. None of these checks 
 #! will be performed by the NC-version.
-#! * Are the optional arguments <A>vertices</A>, <A>edges</A> and <A>faces</A>
-#!   either positive integers or sets of positive integers?
 #! * Is <A>verticesInFaces</A> a list whose entries are lists of pairwise
 #!   different positive integers?
 #! * Does every bound entry of <A>verticesInFaces</A> contain at least two 
 #!   elements?
-#! * If <A>vertices</A> is given, is 
-#!   <K>Union</K>(<A>verticesInFaces</A>) = <A>vertices</A>?
-#! * If <A>faces</A> is given, is it equal to the bound positions of 
-#!   <A>verticesInFaces</A>?
+#! @EndChunk
+
+#! @BeginChunk Documentation_ComplexByVerticesInFaces
+#! where vertices, edges and faces are represented by positive integers.
+#! It is based on the attributes
+#! <K>VerticesOfFaces</K> (<Ref Subsect="VerticesOfFaces"/>) and 
+#! requires that the edges be uniquely defined by their incident vertices.
+#! It takes the following arguments:
+#! <Enum>
+#!   <Item>OPTIONAL <K>isolatedVertices</K>: A list of positive integers
+#!          labeling all vertices with no edge incidence.</Item>
+#!   <Item>OPTIONAL <K>verticesOfIsolatedEdges</K>: A list that has an entry
+#!          for each positive integer corresponding to an isolated edge. This
+#!          entry is a list of positive integers <M>[v_1, v_2 , ..., v_k ]</M>,
+#!          each corresponding to a vertex indicent to the isolated edge.</Item>
+#!   <Item> <K>verticesInFaces</K>: A list that has an entry for each positive
+#!          integer corresponding to a face. This entry is a list of positive
+#!          integers <M>[v_1, v_2 , ..., v_k ]</M>, each corresponding to
+#!          a vertex incident to the face. Moreover, two consecutive vertices
+#!          in this list are the vertices of an edge incident to the face  
+#!          (here the first and last vertex count as consecutive).</Item>
+#! </Enum>
+#!
+#! The method checks whether the
+#! answer to each of the following questions is true. None of these checks 
+#! will be performed by the NC-version.
+#! * Is <A>verticesInFaces</A> a list whose entries are lists of pairwise
+#!   different positive integers?
+#! * Does every bound entry of <A>verticesInFaces</A> contain at least two 
+#!   elements?
+#! * If <A>isolatedVertices</A> is given, is it a set, and is the intersection
+#!   of <A>isolatedVertices</A> and <K>Union</K>(<A>verticesInFaces</A>) empty?
+#! * If <A>verticesOfIsolatedEdges</A> is given, is it a set, and are the following
+#!   conditions true for each entry e:
+#!   * e is a set of two positive integers
+#!   * <A>verticesOfIsolatedEdges</A> has no reversed entry of e
+#!   * e is not a subset of any entry in <A>verticesInFaces</A>
+#! * If both <A>isolatedVertices</A> and <A>verticesOfIsolatedEdges</A> are given,
+#!   is the intersection of <A>isolatedVertices</A> and
+#!   <K>Union</K>(<A>verticesOfIsolatedEdges</A>) empty?
 #! @EndChunk
 
 #TODO explain how the edge numbers are chosen (such that VerticesOfEdges is a set);
@@ -977,7 +1007,7 @@ DeclareOperation( "SimplicialSurfaceByUpwardIncidenceNC", [IsList, IsList] );
 #! @Description
 #! This method constructs a polygonal complex 
 #! (<Ref Sect="PolygonalStructures_complex"/>)
-#! @InsertChunk Documentation_VerticesInFaces
+#! @InsertChunk Documentation_ComplexByVerticesInFaces
 #!
 #! As an example consider the following net of a polygonal complex (note, there
 #! are both vertex and edge ramifications):
@@ -1013,7 +1043,7 @@ DeclareOperation( "PolygonalComplexByVerticesInFacesNC", [IsList, IsList, IsList
 #! @Description
 #! This method constructs a polygonal surface
 #! (<Ref Sect="PolygonalStructures_surface"/>)
-#! @InsertChunk Documentation_VerticesInFaces
+#! @InsertChunk Documentation_SurfaceByVerticesInFaces
 #!
 #! As an example consider the following net of a simplicial surface:
  
@@ -1047,7 +1077,7 @@ DeclareOperation( "PolygonalSurfaceByVerticesInFacesNC", [IsList] );
 #! @Description
 #! This method constructs a triangular complex 
 #! (<Ref Sect="PolygonalStructures_complex"/>)
-#! @InsertChunk Documentation_VerticesInFaces
+#! @InsertChunk Documentation_ComplexByVerticesInFaces
 #!
 #! As an example consider the following net of a triangular complex (at the
 #! vertices and edges marked red, there are ramifications):
@@ -1150,7 +1180,7 @@ DeclareOperation( "SimplicialComplexByVerticesInFacesNC", [IsList, IsList, IsLis
 #! @Description
 #! This method constructs a simplicial surface
 #! (<Ref Sect="PolygonalStructures_surface"/>)
-#! @InsertChunk Documentation_VerticesInFaces
+#! @InsertChunk Documentation_SurfaceByVerticesInFaces
 #! 
 #! As an example consider the following net of a simplicial surface:
  
