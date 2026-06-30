@@ -127,34 +127,15 @@
 #! gap> PolygonalSurfaceByDownwardIncidence( verticesOfEdges, edgesOfFaces );;
 #! @EndExampleSession
 #! 
-#! The <E>DownwardIncidence</E>-constructors also allow the optional arguments 
-#! <A>vertices</A>,
-#! <A>edges</A> and <A>faces</A>. If those sets are given, the incidence
-#! information is checked for compatibility with them, that is 
-#! (1) the integers in <A>faces</A> correspond to the bound positions of 
-#! <A>edgesOfFaces</A>, (2) the integers in <A>edges</A> are those occurring 
-#! in the entries of <A>edgesOfFaces</A> and also correspond to the bound 
-#! entries of <A>verticesOfEdges</A> and 
-#! (3) the integers in <A>verties</A> are those occurring
-#! in the entries of <A>verticesOfEdges</A>. This is not strictly 
-#! necessary since this information can be deduced from the lists
-#! <A>verticesOfEdges</A> and <A>edgesOfFaces</A>.
-#!
-#! In practice it is common to make mistakes in manually giving these lists.
-#! Especially in such situations it is recommended to use the optional 
-#! arguments as they might catch some mistakes.
-#!
-#! To make giving these lists easier, each of these sets can be replaces by
-#! a positive integer <A>n</A>, which will be interpreted as the set
-#! <M>[1,...,n]</M>.
-#! @ExampleSession
-#! gap> PolygonalSurfaceByDownwardIncidence( verticesOfEdges, edgesOfFaces );;
-#! @EndExampleSession
-#! 
 #! The name <E>DownwardIncidence</E> stems from the fact that the incidence
 #! relation is given by referring to structures of lower dimension  - an edge
 #! (dimension 1) is defined by two vertices (dimension 0) and a face 
 #! (dimension 2) is defined by edges.
+#!
+#! We call vertices with no edge incidence isolated vertices. Since the
+#! downward incidence relation does not provide information for these
+#! isolated vertices, constructor calls for types that allow isolated
+#! vertices have an optional argument <A>isolatedVertices</A>.
 
 #TODO should the presentation be changed?
 # Problem: optional argument types unclear (because complicated..)
@@ -367,54 +348,7 @@ DeclareOperation( "TriangularComplexByDownwardIncidenceNC", [IsList, IsList, IsL
 #! @Description
 #! This method constructs a simplicial complex
 #! (<Ref Sect="PolygonalStructures_complex"/>)
-#! where vertices, edges and faces are represented by positive integers.
-#! It is based on the attributes
-#! <K>VerticesOfEdges</K> (<Ref Subsect="VerticesOfEdges"/>) and 
-#! <K>EdgesOfFaces</K> (<Ref Subsect="EdgesOfFaces"/>) and takes these
-#! arguments:
-#! <Enum>
-#!   <Item> <K>vertices</K> / <K>allVertices</K>: A set of positive integers or
-#!          a positive integer. In the latter case, an integer <M>n</M>
-#!          represents the set <M>[1,...,n]</M>.</Item>
-#!   <Item>OPTIONAL: Each of the optional arguments <A>edges</A> and
-#!          <A>faces</A> is either a set of positive integers or a positive
-#!          integer. In the latter case, an integer <M>n</M> represents the
-#!          set <M>[1,...,n]</M>.
-#!          
-#!          Although these arguments can be deduced from the non-optional
-#!          arguments, their use is recommended to catch mistakes in these
-#!          other arguments.</Item>
-#!   <Item> <K>verticesOfEdges</K>: A list that has an entry for each edge (a
-#!          positive integer).
-#!          This entry has to be a list of the two 
-#!          vertices (as positive integers) of this edge.</Item>
-#!   <Item> <K>edgesOfFaces</K>: A list that has an entry for each face (a
-#!          positive integer).
-#!          This entry has to be a list of the edges 
-#!          (as positive integers) of this face.</Item>
-#! </Enum>
-#!
-#! The method checks whether the
-#! answer to each of the following questions is true. None of these checks 
-#! will be
-#! performed by the NC-version.
-#! * Are the optional arguments <A>edges</A> and <A>faces</A> either positive
-#!   integers or sets of positive integers?
-#! * Are <A>verticesOfEdges</A> and <A>edgesOfFaces</A> lists where the 
-#!   entries are lists of positive integers?
-#! * Is every bound entry of <A>verticesOfEdges</A> a list with exactly two 
-#!   entries that are different?
-#! * Does every bound entry of <A>edgesOfFaces</A> contain at least two 
-#!   elements?
-#! * Is <A>vertices</A> a superset of <K>Union</K>(<A>verticesOfEdges</A>)
-#!   or is <A>vertices</A> a distinct list to
-#!   <K>Union</K>(<A>verticesOfEdges</A>)?
-#! * Is <A>allVertices</A> a superset of <K>Union</K>(<A>verticesOfEdges</A>)?
-#! * Are the bound positions of <A>verticesOfEdges</A> equal to 
-#!   <K>Union</K>(<A>edgesOfFaces</A>)? If <A>edges</A> is given, is it equal 
-#!   to those two sets?
-#! * If <A>faces</A> is given, is it equal to the bound positions of 
-#!   <A>edgesOfFaces</A>?
+#! @InsertChunk Documentation_ComplexByDownwardIncidence
 #!
 #! As an example consider the following net of a simplicial complex:
 
@@ -530,24 +464,6 @@ DeclareOperation( "SimplicialSurfaceByDownwardIncidenceNC", [IsList, IsList] );
 #! [ , [ 1 ],,,, [ 1, 4 ],, [ 4 ],, [ 4, 9 ],, [ 1 ],, [ 1, 9 ], [ 9 ] ]
 #! @EndExampleSession
 #! With these two lists we can construct the desired polygonal surface.
-#! @ExampleSession
-#! gap> PolygonalSurfaceByUpwardIncidence( edgesOfVertices, facesOfEdges );;
-#! @EndExampleSession
-#! 
-#! The <E>UpwardIncidence</E>-constructors also allow the optional arguments 
-#! <A>vertices</A>,
-#! <A>edges</A> and <A>faces</A>. If those sets are given, the incidence
-#! information is checked for compatibility with them. This is not strictly 
-#! necessary since this information can be deduced from the lists
-#! <A>edgesOfVertices</A> and <A>facesOfEdges</A>.
-#!
-#! In practice it is common to make mistakes in manually giving these lists.
-#! Especially in such situations it is recommended to use the optional 
-#! arguments as they might catch some mistakes.
-#!
-#! To make giving these lists easier, each of these sets can be replaces by
-#! a positive integer <A>n</A>, which will be interpreted as the set
-#! <M>[1,...,n]</M>.
 #! @ExampleSession
 #! gap> PolygonalSurfaceByUpwardIncidence( edgesOfVertices, facesOfEdges );;
 #! @EndExampleSession
@@ -724,57 +640,7 @@ DeclareOperation( "TriangularComplexByUpwardIncidenceNC", [IsList, IsList] );
 #! @Description
 #! This method constructs a simplicial complex
 #! (<Ref Sect="PolygonalStructures_complex"/>)
-#! where vertices, edges and faces are represented by positive integers.
-#! It is based on the attributes
-#! <K>EdgesOfVertices</K> (<Ref Subsect="EdgesOfVertices"/>) and 
-#! <K>FacesOfEdges</K> (<Ref Subsect="FacesOfEdges"/>) and takes these
-#! arguments:
-#! <Enum>
-#!   <Item> <K>vertices</K> / <K>allVertices</K>: A set of positive integers or
-#!          a positive integer. In the latter case, an integer <M>n</M>
-#!          represents the set <M>[1,...,n]</M>.</Item>
-#!   <Item>OPTIONAL: Each of the optional arguments <A>edges</A> and
-#!          <A>faces</A> is either a set of positive integers or a positive
-#!          integer. In the latter case, an integer <M>n</M> represents the set
-#!          <M>[1,...,n]</M>.
-#!          
-#!          Although these arguments can be deduced from the non-optional
-#!          arguments, their use is recommended to catch mistakes in these
-#!          other arguments.</Item>
-#!   <Item> <K>edgesOfVertices</K>: A list that has an entry for each vertex (a
-#!          positive integer).
-#!          This entry has to be a list of the incident
-#!          edges (as positive integers) of this vertex.</Item>
-#!   <Item> <K>facesOfEdges</K>: A list that has an entry for each edge (a
-#!          positive integer).
-#!          This entry has to be a list of the incident faces 
-#!          (as positive integers) of this edge.</Item>
-#! </Enum>
-#!
-#! The method checks whether the
-#! answer to each of the following questions is true. None of these checks 
-#! will be
-#! performed by the NC-version.
-#! * Are the optional arguments <A>edges</A> and <A>faces</A> either positive
-#!   integers or sets of positive integers?
-#! * Are <A>edgesOfVertices</A> and <A>facesOfEdges</A> lists where the 
-#!   entries are lists of positive integers?
-#! * Does every edge of the resulting polygonal complex has exactly two
-#!   incident vertices?
-#! * Does every face of the resulting polygonal complex has at least two
-#!   incident edges?
-#! * Does every bound entry of <A>edgesOfFaces</A> contain at least two 
-#!   elements?
-#! * Is <A>vertices</A> a superset of the bound positions of <A>edgesOfVertices</A>
-#!   or does <A>vertices</A> only consist of isolated vertices? (vertices
-#!   for which there is a value '[]' in <A>edgesOfVertices</A> at the vertex label
-#!   position are isolated)
-#! * Is <A>allVertices</A> superset of the bound positions of <A>edgesOfVertices</A>?
-#! * Are the bound positions of <A>facesOfEdges</A> equal to 
-#!   <K>Union</K>(<A>edgesOfVertices</A>)? If <A>edges</A> is given, is it equal 
-#!   to those two sets?
-#! * If <A>faces</A> is given, is it equal to 
-#!   <K>Union</K>(<A>facesOfEdges</A>)?
+#! @InsertChunk Documentation_UpwardIncidence
 #!
 #! As an example consider the following net of a simplicial complex:
 
@@ -915,26 +781,11 @@ DeclareOperation( "SimplicialSurfaceByUpwardIncidenceNC", [IsList, IsList] );
 #! [ [ 3, 5, 13, 7 ],,, [ 3, 11, 7 ],,,,, [ 7, 11, 13 ] ]
 #! gap> PolygonalSurfaceByVerticesInFaces( verticesInFaces );;
 #! @EndExampleSession
-#! 
-#! The <E>VerticesInFaces</E>-constructors also allow the optional arguments 
-#! <A>vertices</A>
-#! and <A>faces</A>. If those sets are given, the incidence
-#! information is checked for compatibility with them. This is very useful
-#! in practice to notice typos in the incidence relations. 
-#! As this can be deduced from the argument <A>verticesInFaces</A> it is not
-#! necessary to give these optional arguments.
 #!
-#! In practice it is common to make mistakes in manually typing this list.
-#! Especially in a situation like this it is recommended to use the optional
-#! arguments to catch some mistakes. 
-#!
-#! To make this easier, each of these
-#! optional arguments can be replaced by a positive integer <A>n</A> (which
-#! will be interpreted as the set <M>[1,...,n]</M>).
-#! @ExampleSession
-#! gap> PolygonalSurfaceByVerticesInFaces( verticesInFaces );;
-#! @EndExampleSession
-#! 
+#! We call vertices with no edge incidence isolated vertices. Since the
+#! vertex-face relation does not provide information for these
+#! isolated vertices, constructor calls for types that allow isolated
+#! vertices have an optional argument <A>isolatedVertices</A>.
 
 #! @BeginChunk Documentation_SurfaceByVerticesInFaces
 #! where vertices, edges and faces are represented by positive integers.
@@ -1112,47 +963,7 @@ DeclareOperation( "TriangularComplexByVerticesInFacesNC", [IsList, IsList, IsLis
 #! @Description
 #! This method constructs a simplicial complex
 #! (<Ref Sect="PolygonalStructures_complex"/>)
-#! where vertices, edges and faces are represented by positive integers.
-#! It is based on the attributes
-#! <K>VerticesOfFaces</K> (<Ref Subsect="VerticesOfFaces"/>) and 
-#! requires that the edges be uniquely defined by their incident vertices.
-#! It takes the following arguments:
-#! <Enum>
-#!   <Item> <K>vertices</K> / <K>allVertices</K>: A set of positive integers or
-#!          a positive integer. In the latter case, an integer <M>n</M>
-#!          represents the set <M>[1,...,n]</M>.</Item>
-#!   <Item>OPTIONAL: Each of the optional arguments <A>edges</A> and
-#!          <A>faces</A> is either a set of positive integers or a positive
-#!          integer. In the latter case, an integer <M>n</M> represents the set
-#!          <M>[1,...,n]</M>.
-#!          
-#!          Although these arguments can be deduced from the non-optional
-#!          arguments, their use is recommended to catch mistakes in these
-#!          other arguments.</Item>
-#!   <Item> <K>verticesInFaces</K>: A list that has an entry for each positive
-#!          integer corresponding to a face. This entry is a list of positive
-#!          integers <M>[v_1, v_2 , ..., v_k ]</M>, each corresponding to
-#!          a vertex incident to the face. Moreover, two consecutive vertices
-#!          in this list are the vertices of an edge incident to the face  
-#!          (here the first and last vertex count as consecutive). 
-#!   </Item>
-#! </Enum>
-#!
-#! The method checks whether the
-#! answer to each of the following questions is true. None of these checks 
-#! will be performed by the NC-version.
-#! * Are the optional arguments <A>edges</A> and <A>faces</A> either positive
-#!   integers or sets of positive integers?
-#! * Is <A>verticesInFaces</A> a list whose entries are lists of pairwise
-#!   different positive integers?
-#! * Does every bound entry of <A>verticesInFaces</A> contain at least two 
-#!   elements?
-#! * Is <A>vertices</A> a superset of <K>Union</K>(<A>verticesInFaces</A>)
-#!   or is <A>vertices</A> a distinct list to
-#!   <K>Union</K>(<A>verticesInFaces</A>)?
-#! * Is <A>allVertices</A> a superset of <K>Union</K>(<A>verticesInFaces</A>)?
-#! * If <A>faces</A> is given, is it equal to the bound positions of 
-#!   <A>verticesInFaces</A>?
+#! @InsertChunk Documentation_ComplexByVerticesInFaces
 #!
 #! As an example consider the following net of a simplicial complex:
 
