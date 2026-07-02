@@ -182,11 +182,8 @@ InstallMethod( IsStronglyConnectedSurface, "for a surface", [IsPolygonalSurface]
 InstallMethod( ConnectedComponentOfFaceNC, "for a twisted polygonal complex",
     [IsTwistedPolygonalComplex, IsPosInt],
     function(complex, face)
-        local comp, faceEdges, connectedEdges, verticesOfEdges, subVerticesOfEdges,
+        local faceEdges, connectedEdges, verticesOfEdges, subVerticesOfEdges,
               edgesOfFaces, subEdgesOfFaces, e, f, subComp;
-
-        comp := __SIMPLICIAL_AbstractConnectedComponent(
-                    Faces(complex), VerticesOfFaces(complex), face );
 
         faceEdges := EdgesOfFace(complex, face);
 
