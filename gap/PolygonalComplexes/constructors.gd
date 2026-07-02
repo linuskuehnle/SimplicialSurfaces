@@ -133,7 +133,7 @@
 #! (dimension 2) is defined by edges.
 #!
 #! We call vertices with no edge incidence isolated vertices. Since the
-#! downward incidence relation does not provide information for these
+#! downward incidence relation does not provide information about these
 #! isolated vertices, constructor calls for types that allow isolated
 #! vertices have an optional argument <A>isolatedVertices</A>.
 
@@ -782,10 +782,13 @@ DeclareOperation( "SimplicialSurfaceByUpwardIncidenceNC", [IsList, IsList] );
 #! gap> PolygonalSurfaceByVerticesInFaces( verticesInFaces );;
 #! @EndExampleSession
 #!
-#! We call vertices with no edge incidence isolated vertices. Since the
-#! vertex-face relation does not provide information for these
-#! isolated vertices, constructor calls for types that allow isolated
-#! vertices have an optional argument <A>isolatedVertices</A>.
+#! We call vertices and edges with no face incidence isolated vertices
+#! and isolated edges. Since the vertex-face relation does not provide
+#! information about these isolated vertices or isolated edges,
+#! constructor calls for types that allow isolated vertices have
+#! an optional argument <A>isolatedVertices</A>. Similarly for types
+#! that allow isolated edges the constructor has an optional argument
+#! <A>verticesOfIsolatedEdges</A>.
 
 #! @BeginChunk Documentation_SurfaceByVerticesInFaces
 #! where vertices, edges and faces are represented by positive integers.
