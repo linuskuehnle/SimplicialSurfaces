@@ -2082,7 +2082,7 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_VerticesInFaces",
             hasIsolatedEdges    := Length(verticesOfIsolatedEdges) > 0;
             hasIsolatedVertices := Length(isolatedVertices)        > 0;
 
-            if   hasIsolatedEdges    and not IsSet(verticesOfIsolatedEdges)    then
+            if   hasIsolatedEdges    and Length(Set(verticesOfIsolatedEdges)) <> Length(verticesOfIsolatedEdges) then
                 Error(Concatenation(functionName,
                                     ": pre-check: verticesOfIsolatedEdges must be a set\n"));
             elif hasIsolatedVertices and not IsSet(isolatedVertices) then
