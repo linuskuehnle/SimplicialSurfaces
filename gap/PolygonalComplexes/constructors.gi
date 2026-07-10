@@ -2002,7 +2002,8 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_VerticesInFaces",
           descriptions, filters, numFunctionVariants, vNr, installationWrapper;
 
     objectBuilder := function(verticesInFaces, allVertices, verticesOfIsolatedEdges)
-        local AdjacentVertices, vertexPairs, verticesOfEdgesDed, edgesOfFacesDed, obj;
+        local AdjacentVertices, vertexPairs, verticesOfIsolatedEdge,
+              verticesOfEdgesDed, edgesOfFacesDed, obj;
 
         AdjacentVertices := function(list)
             local pairs, i;
@@ -2016,7 +2017,12 @@ BindGlobal ( "__SIMPLICIAL_InstallConstructors_VerticesInFaces",
 
         vertexPairs := List(verticesInFaces, AdjacentVertices);
 
-        verticesOfEdgesDed := Union( Union(vertexPairs), verticesOfIsolatedEdges );
+        verticesOfEdgesDed := Union(vertexPairs);
+        for verticesOfIsolatedEdge in verticesOfIsolatedEdges do
+            if not verticesOfIsolatedEdge in verticesOfEdgesDed then
+                Add(verticesOfEdgesDed, verticesOfIsolatedEdge);
+            fi;
+        od;
         edgesOfFacesDed    := List( vertexPairs,
                                     l -> List( l, p -> Position(verticesOfEdgesDed, p) ) );
 

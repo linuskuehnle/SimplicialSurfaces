@@ -716,10 +716,10 @@ BindGlobal("__SIMPLICIAL_Test_SimplicialComplex", function ()
     edges    := [1 .. 4];
     faces    := [1];
     verticesOfFaces := [ [ 3, 4, 5 ] ];
-    verticesOfEdges := [ [ 2, 3 ], [ 3, 4 ], [ 3, 5 ], [ 4, 5 ] ];
-    edgesOfVertices := [ [  ], [ 1 ], [ 1, 2, 3 ], [ 2, 4 ], [ 3, 4 ] ];
-    edgesOfFaces    := [ [ 2, 3, 4 ] ];
-    facesOfEdges    := [ [  ], [ 1 ], [ 1 ], [ 1 ] ];
+    verticesOfEdges := [ [ 3, 4 ], [ 3, 5 ], [ 4, 5 ], [ 2, 3 ] ];
+    edgesOfVertices := [ [  ], [ 4 ], [ 1, 2, 4 ], [ 1, 3 ], [ 2, 3 ] ];
+    edgesOfFaces    := [ [ 1, 2, 3 ] ];
+    facesOfEdges    := [ [ 1 ], [ 1 ], [ 1 ], [  ] ];
 
     callConstructors(verticesOfFaces, verticesOfEdges, edgesOfVertices,
                      edgesOfFaces, facesOfEdges, isolatedVertices, verticesOfIsolatedEdges);
