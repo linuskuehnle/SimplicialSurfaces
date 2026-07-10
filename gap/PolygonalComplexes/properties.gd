@@ -1601,8 +1601,34 @@ DeclareOperation( "IsRamifiedVertexNC", [IsTwistedPolygonalComplex, IsPosInt] );
 #! vertex of the given twisted polygonal complex. The NC-version does not check whether
 #! <A>vertex</A> is an vertex of <A>complex</A>.
 #!
-#! TODO: Add image
-#! TODO: Add example
+#!  <Alt Only="HTML">
+#! &lt;br>&lt;img src='./images/Image_SimplicialComplex.svg'> &lt;/img> &lt;br>
+#! </Alt>
+#! <Alt Only = "LaTeX">
+#! \begin{center}
+#! \includegraphics{images/_Wrapper_properties-19.pdf}
+#! \end{center}
+#! </Alt>
+#! <Alt Only = "Text">
+#! Image omitted in terminal text
+            #! </Alt>
+#! @BeginExampleSession
+#! gap> isolatedVertices := [10];;
+#! gap> verticesOfEdges := [[6,1], [6,5], [6,2], [6,3], [6,7], [6,4], [3,2],
+#! >                 [5,1], [2,5], [7,3], [4,7], [1,4], [8,2], [8,3], [9,1]];;
+#! gap> edgesOfFaces := [[1,2,8], [2,3,9], [3,4,7], [4,5,10], [5,6,11]];;
+#! gap> complex := SimplicialComplexByDownwardIncidence(isolatedVertices,
+#! >        verticesOfEdges, edgesOfFaces);
+#! simplicial complex (10 vertices, 15 edges, and 5 faces)
+#! gap> IsIsolatedVertex(complex, 8);
+#! false
+#! gap> IsIsolatedVertex(complex, 9);
+#! false
+#! gap> IsIsolatedVertex(complex, 10);
+#! true
+#! gap> IsolatedVertices(complex);
+#! [ 10 ]
+#! @EndExampleSession
 #! 
 #! @Returns a set of positive integers
 #! @Arguments complex

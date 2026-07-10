@@ -350,20 +350,29 @@ DeclareOperation( "TriangularComplexByDownwardIncidenceNC", [IsList, IsList, IsL
 #! (<Ref Sect="PolygonalStructures_complex"/>)
 #! @InsertChunk Documentation_ComplexByDownwardIncidence
 #!
-#! As an example consider the following net of a simplicial complex:
+#! As an example consider the following net of a simplicial complex (red vertices or faces
+#! are isolated vertices or faces):
 
-#! TODO: Add image
+#! <Alt Only="HTML">
+#! &lt;br>&lt;img src='./images/Image_SimplicialComplex.svg'> &lt;/img> &lt;br>
+#! </Alt>
+#! <Alt Only = "LaTeX">
+#! \begin{center}
+#! \includegraphics{images/_Wrapper_constructors-14.pdf}
+#! \end{center}
+#! </Alt>
+#! <Alt Only = "Text">
+#! Image omitted in terminal text
+#! </Alt>
 #!
 #! @BeginExampleSession
-#! gap> tetra := Tetrahedron();
-#! simplicial surface (4 vertices, 6 edges, and 4 faces)
-#! gap> verticesOfEdges := Concatenation(VerticesOfEdges(tetra), [[1, 5]]);
-#! [ [ 1, 2 ], [ 1, 3 ], [ 1, 4 ], [ 2, 3 ], [ 2, 4 ], [ 3, 4 ], [ 1, 5 ] ]
-#! gap> edgesOfFaces := EdgesOfFaces(tetra);
-#! [ [ 1, 2, 4 ], [ 1, 3, 5 ], [ 4, 5, 6 ], [ 2, 3, 6 ] ]
-#! gap> isolatedVertices := [6];;
-#! gap> SimplicialComplexByDownwardIncidence(isolatedVertices, verticesOfEdges, edgesOfFaces);
-#! simplicial complex (6 vertices, 7 edges, and 4 faces)
+#! gap> isolatedVertices := [10];;
+#! gap> verticesOfEdges := [[6,1], [6,5], [6,2], [6,3], [6,7], [6,4], [3,2],
+#! >                 [5,1], [2,5], [7,3], [4,7], [1,4], [8,2], [8,3], [9,1]];;
+#! gap> edgesOfFaces := [[1,2,8], [2,3,9], [3,4,7], [4,5,10], [5,6,11]];;
+#! gap> complex := SimplicialComplexByDownwardIncidence(isolatedVertices,
+#! >        verticesOfEdges, edgesOfFaces);
+#! simplicial complex (10 vertices, 15 edges, and 5 faces)
 #! @EndExampleSession
 #!
 #! @Returns a simplicial complex
@@ -642,21 +651,28 @@ DeclareOperation( "TriangularComplexByUpwardIncidenceNC", [IsList, IsList] );
 #! (<Ref Sect="PolygonalStructures_complex"/>)
 #! @InsertChunk Documentation_UpwardIncidence
 #!
-#! As an example consider the following net of a simplicial complex:
+#! As an example consider the following net of a simplicial complex (red vertices or faces
+#! are isolated vertices or faces):
 
-#! TODO: Add image
+#! <Alt Only="HTML">
+#! &lt;br>&lt;img src='./images/Image_SimplicialComplex.svg'> &lt;/img> &lt;br>
+#! </Alt>
+#! <Alt Only = "LaTeX">
+#! \begin{center}
+#! \includegraphics{images/_Wrapper_constructors-14.pdf}
+#! \end{center}
+#! </Alt>
+#! <Alt Only = "Text">
+#! Image omitted in terminal text
+#! </Alt>
 #!
 #! @BeginExampleSession
-#! gap> tetra := Tetrahedron();
-#! simplicial surface (4 vertices, 6 edges, and 4 faces)
-#! gap> EdgesOfVertices(tetra);
-#! [ [ 1, 2, 3 ], [ 1, 4, 5 ], [ 2, 4, 6 ], [ 3, 5, 6 ] ]
-#! gap> edgesOfVertices := [ [ 1, 2, 3, 7 ], [ 1, 4, 5 ], [ 2, 4, 6 ], [ 3, 5, 6 ], [7], [] ];
-#! [ [ 1, 2, 3, 7 ], [ 1, 4, 5 ], [ 2, 4, 6 ], [ 3, 5, 6 ], [ 7 ], [  ] ]
-#! gap> facesOfEdges := Concatenation(FacesOfEdges(tetra), [[]]);
-#! [ [ 1, 2 ], [ 1, 4 ], [ 2, 4 ], [ 1, 3 ], [ 2, 3 ], [ 3, 4 ], [  ] ]
-#! gap> SimplicialComplexByUpwardIncidence(edgesOfVertices, facesOfEdges);
-#! simplicial complex (6 vertices, 7 edges, and 4 faces)
+#! gap> edgesOfVertices := [[1,8,15,12], [3,7,13,9], [4,10,14,7], [11,6,12], [8,2,9],
+#! >                        [1,2,3,4,5,6], [10,5,11], [13,14], [15], []];;
+#! gap> facesOfEdges := [[1], [1,2], [2,3], [3,4], [4,5], [5], [3],
+#! >                     [1], [2], [4], [5], [], [], [], []];;
+#! gap> complex := SimplicialComplexByUpwardIncidence(edgesOfVertices, facesOfEdges);
+#! simplicial complex (10 vertices, 15 edges, and 5 faces)
 #! @EndExampleSession
 #!
 #! @Returns a simplicial complex
@@ -968,18 +984,28 @@ DeclareOperation( "TriangularComplexByVerticesInFacesNC", [IsList, IsList, IsLis
 #! (<Ref Sect="PolygonalStructures_complex"/>)
 #! @InsertChunk Documentation_ComplexByVerticesInFaces
 #!
-#! As an example consider the following net of a simplicial complex:
-
-#! TODO: Add image
+#! As an example consider the following net of a simplicial complex (red vertices or faces
+#! are isolated vertices or faces):
+ 
+#! <Alt Only="HTML">
+#! &lt;br>&lt;img src='./images/Image_SimplicialComplex.svg'> &lt;/img> &lt;br>
+#! </Alt>
+#! <Alt Only = "LaTeX">
+#! \begin{center}
+#! \includegraphics{images/_Wrapper_constructors-14.pdf}
+#! \end{center}
+#! </Alt>
+#! <Alt Only = "Text">
+#! Image omitted in terminal text
+#! </Alt>
 #!
 #! @BeginExampleSession
-#! gap> tetra := Tetrahedron();
-#! simplicial surface (4 vertices, 6 edges, and 4 faces)
-#! gap> verticesOfFaces := VerticesOfFaces(tetra);
-#! [ [ 1, 2, 3 ], [ 1, 2, 4 ], [ 2, 3, 4 ], [ 1, 3, 4 ] ]
-#! gap> isolatedVertices := [5];;
-#! gap> SimplicialComplexByVerticesInFaces(isolatedVertices, verticesOfFaces);
-#! simplicial complex (5 vertices, 6 edges, and 4 faces)
+#! gap> isolatedVertices := [10];;
+#! gap> verticesOfIsolatedEdges := [[1,4], [8,2], [8,3], [1,9]];;
+#! gap> verticesOfFaces := [[1,6,5], [2,5,6], [2,6,3], [3,6,7], [4,7,6]];;
+#! gap> complex := SimplicialComplexByVerticesInFaces(isolatedVertices,
+#! >          verticesOfIsolatedEdges, verticesOfFaces);
+#! simplicial complex (10 vertices, 15 edges, and 5 faces)
 #! @EndExampleSession
 #!
 #! @Returns a simplicial complex
