@@ -1,3 +1,6 @@
+# This workflow is responsible for making releases of this GAP package,
+# and updating its website afterwards. For usage instructions, see
+# <https://github.com/gap-actions/release-pkg/>.
 name: Release
 
 on:
@@ -24,6 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: gap-actions/setup-gap@v3
+        with:
+          gap-version: 'devel'
+      - shell: bash
+        run: |
+          cd $GAPROOT/pkg
+          git clone https://github.com/gap-packages/AttributeScheduler.git
+          git clone https://github.com/gap-packages/NautyTracesInterface.git
+          ../bin/BuildPackages.sh io profiling AttributeScheduler grape datastructures orb digraphs NautyTracesInterface
       - uses: gap-actions/build-pkg-docs@v2
         with:
           use-latex: true
@@ -34,4 +45,20 @@ jobs:
       - uses: gap-actions/update-gh-pages@v1
         if: ${{ !inputs.dry-run }}
         with:
-          extra-files: doc/images
+          path: doc
+          extra-files: |
+            .nojekyll
+            doc/images
+      - name: Build index.html via Jekyll and push to gh-pages
+        if: ${{ !inputs.dry-run }}
+        run: |
+          sudo gem install jekyll
+          git clone --branch gh-pages https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} gh-pages-build
+          cd gh-pages-build
+          jekyll build
+          cp _site/index.html index.html
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Add pre-built index.html"
+          git push
