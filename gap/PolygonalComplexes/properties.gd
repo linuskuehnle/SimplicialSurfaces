@@ -1601,6 +1601,8 @@ DeclareOperation( "IsRamifiedVertexNC", [IsTwistedPolygonalComplex, IsPosInt] );
 #! vertex of the given twisted polygonal complex. The NC-version does not check whether
 #! <A>vertex</A> is an vertex of <A>complex</A>.
 #!
+#! Consider the following net of a simplicial complex (red vertices are isolated):
+
 #!  <Alt Only="HTML">
 #! &lt;br>&lt;img src='./images/Image_SimplicialComplex.svg'> &lt;/img> &lt;br>
 #! </Alt>
