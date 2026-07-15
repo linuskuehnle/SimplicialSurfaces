@@ -358,7 +358,7 @@ DeclareOperation( "TriangularComplexByDownwardIncidenceNC", [IsList, IsList, IsL
 #! </Alt>
 #! <Alt Only = "LaTeX">
 #! \begin{center}
-#! \includegraphics{images/_Wrapper_constructors-14.pdf}
+#! \includegraphics{images/Image_SimplicialComplex.pdf}
 #! \end{center}
 #! </Alt>
 #! <Alt Only = "Text">
@@ -659,7 +659,7 @@ DeclareOperation( "TriangularComplexByUpwardIncidenceNC", [IsList, IsList] );
 #! </Alt>
 #! <Alt Only = "LaTeX">
 #! \begin{center}
-#! \includegraphics{images/_Wrapper_constructors-14.pdf}
+#! \includegraphics{images/Image_SimplicialComplex.pdf}
 #! \end{center}
 #! </Alt>
 #! <Alt Only = "Text">
@@ -992,7 +992,7 @@ DeclareOperation( "TriangularComplexByVerticesInFacesNC", [IsList, IsList, IsLis
 #! </Alt>
 #! <Alt Only = "LaTeX">
 #! \begin{center}
-#! \includegraphics{images/_Wrapper_constructors-14.pdf}
+#! \includegraphics{images/Image_SimplicialComplex.pdf}
 #! \end{center}
 #! </Alt>
 #! <Alt Only = "Text">

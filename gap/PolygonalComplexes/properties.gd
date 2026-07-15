@@ -1606,7 +1606,7 @@ DeclareOperation( "IsRamifiedVertexNC", [IsTwistedPolygonalComplex, IsPosInt] );
 #! </Alt>
 #! <Alt Only = "LaTeX">
 #! \begin{center}
-#! \includegraphics{images/_Wrapper_properties-19.pdf}
+#! \includegraphics{images/Image_SimplicialComplex.pdf}
 #! \end{center}
 #! </Alt>
 #! <Alt Only = "Text">
