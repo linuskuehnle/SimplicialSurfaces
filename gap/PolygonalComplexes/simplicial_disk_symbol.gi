@@ -1,16 +1,19 @@
 BindGlobal( "__SIMPLICIAL_DiskBoundaryWalk",
 function(disk, startVertex, firstEdge)
-    local boundaryVertexPath, faceByBoundaryEdge, newStartVertex, newFirstEdge,
-          boundaryVertex, boundaryEdge, boundaryFace, edge, foundNewEdge;
+    local boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
+          newStartVertex, newFirstEdge, boundaryVertex, boundaryEdge, boundaryFace,
+          edge, foundNewEdge;
 
-    boundaryVertexPath := [];
-    faceByBoundaryEdge := [];
+    boundaryVertexPath    := [];
+    boundaryVertexDegrees := [];
+    faceByBoundaryEdge    := [];
 
     if Length(Faces(disk)) = 0 then
         newStartVertex := 0;
         newFirstEdge   := 0;
 
-        return [boundaryVertexPath, faceByBoundaryEdge, newStartVertex, newFirstEdge];
+        return [boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
+                newStartVertex, newFirstEdge];
     fi;
 
     # Create a cyclic vertex path from startVertex in direction of firstEdge
@@ -22,7 +25,8 @@ function(disk, startVertex, firstEdge)
         else
             boundaryVertex := VerticesOfEdge(disk, edge)[1];
         fi;
-        Add(boundaryVertexPath, boundaryVertex);
+        Add(boundaryVertexPath   , boundaryVertex);
+        Add(boundaryVertexDegrees, FacesOfEdge(disk, edge));
 
         # Find new boundary edge by checking the edges of vertex incidence
         # for the new boundary vertex
@@ -69,7 +73,7 @@ function(disk, startVertex, firstEdge)
     od;
 
     # Find new first edge of enclosed complex (disk/tree)
-    newFirstEdge   := 0;
+    newFirstEdge := 0;
     #
     # If there is no new starting vertex, we do not need to check for
     # a new first edge
@@ -84,10 +88,11 @@ function(disk, startVertex, firstEdge)
         od;
     fi;
 
-    return [boundaryVertexPath, faceByBoundaryEdge, newStartVertex, newFirstEdge];
+    return [boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
+            newStartVertex, newFirstEdge];
 end);
 
-BindGlobal( "__SIMPLICIAL_ShrinkDisk",
+BindGlobal( "__SIMPLICIAL_DiskShrink",
 function(disk, boundaryVertexPath)
     local verticesOfEdges, edgesOfFaces, removedEdgeLabels, i, vertices, edges, newDisk;
 
@@ -115,18 +120,62 @@ function(disk, boundaryVertexPath)
     return SimplicialComplexByDownwardIncidence(verticesOfEdges, edgesOfFaces);
 end);
 
-InstallMethod( DiskSymbolOfSimplicialComplex, "for a simplicial complex and two positive integers",
+BindGlobal( "__SIMPLICIAL_FindSubDisks",
+function(disk)
+    local subDisks;
+
+    # Check for any vertices that do not fulfill umbrella condition. If there
+    # are none, we do not have any subdisks.
+
+    subDisks     := [];
+    diskConnects := [];
+
+    return [subDisks, diskConnects];
+end);
+
+BindGlobal( "__SIMPLICIAL_SymbolDiskStep",
+function(disk, startVertex, firstEdge)
+    local layerInterconnects, layerDirections, boundaryWalkRet, boundaryVertexPath,
+          faceByBoundaryEdge, newStartVertex, newFirstEdge, shrinkedDisk, findSubDisksRet;
+
+    layerInterconnects := [];
+    layerDirections    := [];
+
+    # TODO: Build while loop from here
+
+    boundaryWalkRet := __SIMPLICIAL_DiskBoundaryWalk(disk, startVertex, firstEdge);
+
+    boundaryVertexPath    := boundaryWalkRet[1];
+    boundaryVertexDegrees := boundaryWalkRet[2];
+    faceByBoundaryEdge    := boundaryWalkRet[3];
+    newStartVertex        := boundaryWalkRet[4];
+    newFirstEdge          := boundaryWalkRet[5];
+
+    Add(layerInterconnects, [newStartVertex, startVertex]);
+    Add(layerDirections   , firstEdge);
+
+    startVertex := newStartVertex;
+    firstEdge   := newFirstEdge;
+
+    shrinkedDisk := __SIMPLICIAL_DiskShrink(disk, boundaryVertexPath);
+
+    findSubDisksRet := __SIMPLICIAL_FindSubDisks(shrinkedDisk);
+
+    subDisks     := findSubDisksRet[1];
+    diskConnects := findSubDisksRet[2];
+end);
+
+InstallMethod( DiskSymbolOfSimplicialComplex,
+"for a simplicial complex and two positive integers",
 [IsSimplicialComplex, IsPosInt, IsPosInt],
 function(complex, startVertex, firstEdge)
-    local disk, boundaryWalkRet, boundaryVertexPath, faceByBoundaryEdge, shrinkedDisk;
-
     # Check if complex is a simplicial disk
     if   EulerCharacteristic(complex) <> 1 then
-        Error("DiskSymbolOfSimplicialComplex: euler characteristic of complex must be equal to 1");
+        Error("DiskSymbolOfSimplicialComplex: euler characteristic of complex must be equal to 1\n");
     elif not IsClosedComplex(complex)      then
-        Error("DiskSymbolOfSimplicialComplex: complex must be closed");
+        Error("DiskSymbolOfSimplicialComplex: complex must be closed\n");
     elif not IsConnectedComplex(complex)   then
-        Error("DiskSymbolOfSimplicialComplex: complex must be connected");
+        Error("DiskSymbolOfSimplicialComplex: complex must be connected\n");
     fi;
 
     if   not IsBoundaryVertex(complex, startVertex) then
@@ -137,16 +186,16 @@ function(complex, startVertex, firstEdge)
                             "firstEdge must be a boundary edge of given complex\n"));
     fi;
 
+    return DiskSymbolOfSimplicialComplexNC(complex, startVertex, firstEdge);
+end);
+
+InstallMethod( DiskSymbolOfSimplicialComplexNC,
+"for a simplicial complex and two positive integers",
+[IsSimplicialComplex, IsPosInt, IsPosInt],
+function(complex, startVertex, firstEdge)
+    local disk;
+
     disk := ShallowCopy(complex);
 
-    # TODO: Build while loop from here
-
-    boundaryWalkRet := __SIMPLICIAL_DiskBoundaryWalk(disk, startVertex, firstEdge);
-
-    boundaryVertexPath := boundaryWalkRet[1];
-    faceByBoundaryEdge := boundaryWalkRet[2];
-    startVertex        := boundaryWalkRet[3];
-    firstEdge          := boundaryWalkRet[4];
-
-    shrinkedDisk := __SIMPLICIAL_ShrinkDisk(disk, boundaryVertexPath);
+    __SIMPLICIAL_SymbolDiskStep(disk, startVertex, firstEdge);
 end);
