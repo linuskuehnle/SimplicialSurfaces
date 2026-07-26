@@ -836,8 +836,7 @@ InstallMethod( Butterfly, "", [], function()
 );
 
 InstallMethod( JanusHead, "", [], function()
-    return SimplicialSurfaceByVerticesInFaces( 3, 2, 
-            [ [1,2,3], [1,2,3] ] );
+    return SimplicialSurfaceByVerticesInFaces( [ [1,2,3], [1,2,3] ] );
     end
 );
 
@@ -862,8 +861,7 @@ InstallMethod( SimplicialUmbrella, "for an integer at least 2", [IsPosInt],
 
         edgesOfFaces[nrFaces] := [1,nrFaces, 2*nrFaces];
 
-        return SimplicialSurfaceByDownwardIncidenceNC([1..nrFaces+1], 
-            [1..2*nrFaces], [1..nrFaces], verticesOfEdges, edgesOfFaces);
+        return SimplicialSurfaceByDownwardIncidenceNC(verticesOfEdges, edgesOfFaces);
     end
 );
 
@@ -897,7 +895,7 @@ InstallMethod( SimplicialOpenGeodesic, "for an integer at least 1", [IsPosInt],
 
         verticesOfFaces := List([1..nrFaces], i -> [i,i+1,i+2]);
 
-        return SimplicialSurfaceByVerticesInFacesNC([1..nrFaces+2], [1..nrFaces], verticesOfFaces);
+        return SimplicialSurfaceByVerticesInFacesNC(verticesOfFaces);
     end
 );
 InstallMethod( SimplicialStrip, "for an integer at least 1", [IsPosInt],
@@ -926,8 +924,7 @@ InstallMethod( SimplicialClosedGeodesic, "for an integer at least 3", [IsPosInt]
         edgesOfFaces := List([1..nrFaces-1], i -> [2*i-1,2*i,2*i+1]);
         edgesOfFaces[nrFaces] := [1,2*nrFaces-1,2*nrFaces];
 
-        return SimplicialSurfaceByDownwardIncidenceNC([1..nrFaces], 
-            [1..2*nrFaces], [1..nrFaces], verticesOfEdges, edgesOfFaces);
+        return SimplicialSurfaceByDownwardIncidenceNC(verticesOfEdges, edgesOfFaces);
     end
 );
 InstallMethod( SimplicialGeodesic, "for an integer at least 3", [IsPosInt],

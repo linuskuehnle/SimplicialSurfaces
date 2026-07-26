@@ -278,9 +278,9 @@ DeclareOperation( "NeighbourFacesOfFaceNC", [IsPolygonalComplex, IsPosInt] );
 #! gap> Faces(restrSurf);
 #! [ 1 .. 5 ]
 #! gap> Edges(restrSurf);
-#! [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 ]
+#! [ 1 .. 12 ]
 #! gap> Vertices(restrSurf);
-#! [ 1, 2, 3, 4, 5, 6, 7, 8 ]
+#! [ 1 .. 8 ]
 #! @EndExampleSession
 
 #! @InsertChunk Example_RestrSurf
@@ -361,7 +361,7 @@ DeclareOperation( "RestrictionToNeighbourhoodOfFacesNC", [ IsPolygonalComplex, I
 #! gap> Edges(restrOcta);
 #! [ 1, 2, 3, 4, 5, 6, 8, 10 ]
 #! gap> Vertices(restrOcta);
-#! [ 1, 2, 3, 4, 5 ]
+#! [ 1 .. 5 ]
 #! 
 #! @EndExampleSession
 #!

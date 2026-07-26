@@ -1,5 +1,3 @@
-
-
 #! @BeginChunk Graphs_Packages
 #! <K>Digraphs</K>, <K>GRAPE</K> and <K>NautyTracesInterface</K>.
 #! @EndChunk
@@ -501,8 +499,7 @@ DeclareOperation( "IsomorphismRepresentatives", [IsList] );
 #! gap> verticesOfEdges := [ ,,, [ 12, 13 ], [ 13, 14 ], [ 14, 15 ], [ 12, 15 ], 
 #! >        [ 13, 17 ], [ 14, 18 ], [ 15, 19 ], [ 12, 16 ], [ 17, 18 ], [ 18, 19 ], 
 #! >        [ 16, 19 ], [ 16, 17 ] ];;
-#! gap> cube := PolygonalSurfaceByDownwardIncidence(vertices, edges, faces, 
-#! >        verticesOfEdges, edgesOfFaces);;
+#! gap> cube := PolygonalSurfaceByDownwardIncidence(verticesOfEdges, edgesOfFaces);;
 #! gap> canonicalCube:=CanonicalRepresentativeOfPolygonalSurface(cube);;
 #! gap> canon:=canonicalCube[1];;
 #! gap> Faces(canon);
@@ -677,9 +674,9 @@ DeclareOperation( "CanonicalRepresentativeOfPolygonalSurface", [IsPolygonalSurfa
 #! @BeginLogSession
 #! gap> tetra := Tetrahedron();;
 #! gap> Vertices(tetra);
-#! [ 1, 2, 3, 4 ]
+#! [ 1 .. 4 ]
 #! gap> Edges(tetra);
-#! [ 1, 2, 3, 4, 5, 6 ]
+#! [ 1 .. 6 ]
 #! gap> Faces(tetra);
 #! [ 1 .. 4 ]
 #! gap> Chambers(tetra);

@@ -63,33 +63,59 @@ BindGlobal( "__SIMPLICIAL_AbstractConnectedComponent",
     end
 );
 
-
 ##
 ## general connectivity
 ##
 InstallMethod( IsConnectedComplex, "for a twisted polygonal complex", [IsTwistedPolygonalComplex], 
     function(complex)
-	local component;
+	    local component;
 
-        if NumberOfFaces(complex) = 0 then
+        if Length(IsolatedVertices(complex)) > 0 then
+            return false;
+        fi;
+
+        if NumberOfFaces(complex) = 0 and Length(IsolatedEdges(complex)) = 0 then
             return true;
         fi;
 
         component := __SIMPLICIAL_AbstractConnectedComponent( 
-                        Faces(complex), VerticesOfFaces(complex), 
-                        Faces(complex)[1] );
-        return Length( component ) = NumberOfFaces(complex);
+                        Edges(complex), VerticesOfEdges(complex), 
+                        Edges(complex)[1] );
+
+        if Length( component ) <> NumberOfEdges(complex) then
+            return false;
+        fi;
+
+        return true;
     end
 );
 InstallImmediateMethod( IsConnectedComplex, 
-    IsTwistedPolygonalComplex and HasConnectedComponentsAttributeOfComplex,0, 
+    IsTwistedPolygonalComplex and HasConnectedComponentsAttributeOfComplex and HasVerticesAttributeOfComplex and HasEdgesOfVertices and HasVerticesOfEdges, 0, 
     function(complex)
-	local components;
+	    local components;
 
-	components := ConnectedComponentsAttributeOfComplex(complex);
-	return Length(components) <= 1;
+	    components := ConnectedComponentsAttributeOfComplex(complex);
+	    if Length(components) > 1 then
+            return false;
+        fi;
+
+        if Length(Edges(complex)) = 0 then
+            return true;
+        fi;
+
+        components := __SIMPLICIAL_AbstractConnectedComponent( 
+                        Edges(complex), VerticesOfEdges(complex), 
+                        Edges(complex)[1] );
+
+        if Length( components ) <> NumberOfEdges(complex) then
+            return false;
+        fi;
+
+        return true;
     end
 );
+AddPropertyIncidence( SIMPLICIAL_ATTRIBUTE_SCHEDULER,
+    "IsConnectedComplex", ["ConnectedComponentsAttributeOfComplex", "VerticesAttributeOfComplex", "EdgesOfVertices", "VerticesOfEdges"]);
 
 InstallMethod( IsConnectedSurface, "for a surface", [IsPolygonalSurface], 
     function(surf)
@@ -156,15 +182,36 @@ InstallMethod( IsStronglyConnectedSurface, "for a surface", [IsPolygonalSurface]
 InstallMethod( ConnectedComponentOfFaceNC, "for a twisted polygonal complex",
     [IsTwistedPolygonalComplex, IsPosInt],
     function(complex, face)
-        local comp, subsurf;
+        local faceEdges, connectedEdges, verticesOfEdges, subVerticesOfEdges,
+              edgesOfFaces, subEdgesOfFaces, e, f, subComp;
 
-        comp := __SIMPLICIAL_AbstractConnectedComponent(
-                    Faces(complex), VerticesOfFaces(complex), face );
+        faceEdges := EdgesOfFace(complex, face);
 
-	subsurf := SubcomplexByFacesNC( complex, comp);
-	# this component is connected by construction, so we set the property
-	SetIsConnectedComplex( subsurf, true );
-	return subsurf;
+        # Do BFS on vertex-edge relation starting from a vertex of face
+        # and find all reachable vertices and collect all edges of reachable vertices
+        connectedEdges := __SIMPLICIAL_AbstractConnectedComponent( 
+                        Edges(complex),
+                        VerticesOfEdges(complex), 
+                        faceEdges[1] );
+
+        verticesOfEdges := VerticesOfEdges(complex);
+        subVerticesOfEdges := [];
+        for e in connectedEdges do
+            Add(subVerticesOfEdges, verticesOfEdges[e], e);
+        od;
+
+        edgesOfFaces := EdgesOfFaces(complex);
+        subEdgesOfFaces := [];
+        for f in Union(FacesOfEdges(complex){connectedEdges}) do
+            Add(subEdgesOfFaces, edgesOfFaces[f], f);
+        od;
+
+        subComp := PolygonalComplexByDownwardIncidenceNC( subVerticesOfEdges,
+                                                          subEdgesOfFaces );
+
+        # this component is connected by construction, so we set the property
+        SetIsConnectedComplex( subComp, true );
+        return subComp;
     end
 );
 InstallMethod( ConnectedComponentOfFaceNC, "for a twisted polygonal complex",
@@ -192,10 +239,10 @@ InstallMethod( StronglyConnectedComponentOfFaceNC, "for a twisted polygonal comp
         comp := __SIMPLICIAL_AbstractConnectedComponent(
                     Faces(complex), EdgesOfFaces(complex), face );
 
-	subsurf := SubcomplexByFacesNC( complex, comp);
-	# this component is strongly connected by construction, so we set the property
-	SetIsStronglyConnectedComplex( subsurf, true );
-	return subsurf;
+        subsurf := SubcomplexByFacesNC( complex, comp);
+        # this component is strongly connected by construction, so we set the property
+        SetIsStronglyConnectedComplex( subsurf, true );
+        return subsurf;
     end
 );
 InstallMethod( StronglyConnectedComponentOfFaceNC, "for a twisted polygonal complex",
@@ -304,12 +351,12 @@ InstallImmediateMethod( StronglyConnectedComponentsAttributeOfComplex,
 ## also want to work with the connection between them. We start with the
 ## direction "strongly connected"->"connected"
 InstallImmediateMethod( IsConnectedComplex, 
-    IsTwistedPolygonalComplex and HasStronglyConnectedComponentsAttributeOfComplex, 0, 
+    IsTwistedPolygonalComplex and HasStronglyConnectedComponentsAttributeOfComplex and HasIsFacePure, 0, 
     function( complex )
         local components;
 
         components := StronglyConnectedComponentsAttributeOfComplex(complex);
-        if Length(components) <= 1 then
+        if Length(components) <= 1 and IsFacePure(complex) then
             return true;
         fi;
 
@@ -318,6 +365,8 @@ InstallImmediateMethod( IsConnectedComplex,
         TryNextMethod();
     end
 );
+AddPropertyIncidence( SIMPLICIAL_ATTRIBUTE_SCHEDULER,
+    "IsConnectedComplex", ["StronglyConnectedComponentsAttributeOfComplex", "IsFacePure"]);
 
 InstallMethod( ConnectedComponentsAttributeOfComplex,
     "for a twisted polygonal complex with strongly connected components",
