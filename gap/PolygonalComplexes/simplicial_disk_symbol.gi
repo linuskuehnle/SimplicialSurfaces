@@ -122,7 +122,7 @@ end);
 
 BindGlobal( "__SIMPLICIAL_FindSubDisks",
 function(disk)
-    local subDisks;
+    local subDisks, diskConnects;
 
     # Check for any vertices that do not fulfill umbrella condition. If there
     # are none, we do not have any subdisks.
@@ -135,8 +135,9 @@ end);
 
 BindGlobal( "__SIMPLICIAL_SymbolDiskStep",
 function(disk, startVertex, firstEdge)
-    local layerInterconnects, layerDirections, boundaryWalkRet, boundaryVertexPath,
-          faceByBoundaryEdge, newStartVertex, newFirstEdge, shrinkedDisk, findSubDisksRet;
+    local layerInterconnects, layerDirections, boundaryWalkRet, findSubDisksRet,
+          boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
+          newStartVertex, newFirstEdge, shrinkedDisk, subDisks, diskConnects;
 
     layerInterconnects := [];
     layerDirections    := [];
