@@ -16,6 +16,7 @@ ReadPackage( "SimplicialSurfaces", "gap/PolygonalComplexes/distances.gi" );
 ReadPackage( "SimplicialSurfaces", "gap/PolygonalComplexes/constructing_families.gi" );
 ReadPackage( "SimplicialSurfaces", "gap/PolygonalComplexes/embedding.gi" );
 ReadPackage( "SimplicialSurfaces", "gap/PolygonalComplexes/drawing.gi" );
+ReadPackage( "SimplicialSurfaces", "gap/PolygonalComplexes/simplicial_disk_symbol.gi" );
 
 ReadPackage( "SimplicialSurfaces", "gap/Morphisms/morphisms.gi" );
 
