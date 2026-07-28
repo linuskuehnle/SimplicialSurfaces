@@ -122,15 +122,37 @@ end);
 
 BindGlobal( "__SIMPLICIAL_FindSubDisks",
 function(disk)
-    local subDisks, diskConnects;
+    local subDisks, trees, separators, v;
 
-    # Check for any vertices that do not fulfill umbrella condition. If there
-    # are none, we do not have any subdisks.
+    subDisks   := [];
+    trees      := [];
+    separators := [];
 
-    subDisks     := [];
-    diskConnects := [];
+    # Find all vertices of disk that have incident isolated edges and
+    # incident faces. We classify these vertices as disk/tree separators.
+    for v in Vertices(disk) do
+        if ForAny(EdgesOfVertex(disk, v),
+                  e -> ForAny(IsolatedEdges(disk),
+                            ie -> ie = e)) and
+           FacesOfVertex(disk, v) <> [] then
+            Add(separators, v);
+        fi;
+    od;
 
-    return [subDisks, diskConnects];
+    # If there are no vertices that do not fulfill the umbrella condition,
+    # we can return the current disk without having to worry about splitting.
+    if separators = [] then
+        return [[disk], [], []];
+    fi;
+
+    # Split into subdisks
+    subDisks := StronglyConnectedComponents(disk);
+
+    # Derive trees by first building a simplicial complex not containing any
+    # subdisk component despite allow separator vertices.
+    # Then you can do trees := ConnectedComponents(complex);
+
+    return [subDisks, trees, separators];
 end);
 
 BindGlobal( "__SIMPLICIAL_SymbolDiskStep",
