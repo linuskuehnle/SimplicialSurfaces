@@ -124,7 +124,7 @@ BindGlobal( "__SIMPLICIAL_FindSubdisks",
 function(disk)
     local subdisks, subdisk, trees, tree, separators, separator, componentLinks, componentLink, v, e,
           vertexHasIsolatedEdge, vertexSCCs, vertexIsTreeComponent,
-          i, vertices, edges, verticesOfEdges, edgesOfFaces, complex;
+          i, vertices, edges, edgesOfVertices, facesOfEdges, complex;
 
     # Split into subdisks by computing the strongly connected components.
     subdisks := StronglyConnectedComponents(disk);
