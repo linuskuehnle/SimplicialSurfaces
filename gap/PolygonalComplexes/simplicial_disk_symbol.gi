@@ -122,14 +122,14 @@ end);
 
 BindGlobal( "__SIMPLICIAL_FindSubdisks",
 function(disk)
-    local subdisks, trees, separators, vertexIsSeparator, subdisk, v, e,
-          vertexHasIsolatedEdge, vertexNumSCCs, vertices,
-          verticesOfEdges, edgesOfFaces, complex;
+    local subdisks, subdisk, trees, tree, separators, separator, componentLinks, componentLink, v, e,
+          vertexHasIsolatedEdge, vertexSCCs, vertexIsTreeComponent,
+          i, vertices, edges, verticesOfEdges, edgesOfFaces, complex;
 
     # Split into subdisks by computing the strongly connected components.
     subdisks := StronglyConnectedComponents(disk);
 
-    # If disk is an SCC, return early.
+    # If disk consists of just one SCC, return early.
     if Length(subdisks) = 1 then
         return [[disk], [], []];
     fi;
@@ -145,72 +145,96 @@ function(disk)
         od;
     od;
     #
-    vertexNumSCCs  := List([1..Length(Vertices(disk))], v -> 0);
+    vertexSCCs  := List([1..Length(Vertices(disk))], v -> []);
     for v in Vertices(disk) do
         for subdisk in subdisks do
             if v in Vertices(subdisk) then
-                vertexNumSCCs[v] := vertexNumSCCs[v] + 1;
+                Add(vertexSCCs, subdisk, v);
             fi;
         od;
     od;
     #
-    # Since both cases are only possible for boundary vertices we only
-    # compare boundary vertices of all subdisks for efficiency.
     vertexIsTreeComponent := List([1..Length(Vertices(disk))], v -> false);
     for v in Vertices(disk) do
-        if   vertexNumSCCs[v] >= 2 or
-             (vertexHasIsolatedEdge[v] and vertexNumSCCs[v] = 1) then
+        if   Length(vertexSCCs[v]) >= 2 then
             vertexIsTreeComponent[v] := true;
-            Add(separators, v);
-        elif vertexNumSCCs[v] = 0 then
+            Add(separators    , v);
+            Add(componentLinks, vertexSCCs[v]);
+        elif vertexHasIsolatedEdge[v] and Length(vertexSCCs[v]) = 1 then
+            vertexIsTreeComponent[v] := true;
+            Add(componentLinks, [ vertexSCCs[v][1] ]);
+        elif Length(vertexSCCs[v]) = 0 then
             vertexIsTreeComponent[v] := true;
         fi;
     od;
 
     # Derive trees by first building a simplicial complex not containing any
     # subdisk component despite allow separator vertices.
-    verticesOfEdges := [];
-    for i in [1..Length(VerticesOfEdges(disk))] do
-        vertices := VerticesOfEdges(disk)[i];
-
-        if not vertexIsTreeComponent[vertices[1]] or
-           not vertexIsTreeComponent[vertices[2]] then
-            continue;
+    #
+    edgesOfVertices := [];
+    for v in [1..Length(EdgesOfVertices(disk))] do
+        if vertexIsTreeComponent[v] then
+            edges := EdgesOfVertex(disk, v);
+        else
+            edges := [];
         fi;
 
-        Add(verticesOfEdges, vertices, i);
+        Add(edgesOfVertices, edges, v);
     od;
     #
-    edgesOfFaces := [];
-    #
-    complex := SimplicialComplexByDownwardIncidence(verticesOfEdges, edgesOfFaces);
+    facesOfEdges    := [];
+    for e in Union(edgesOfVertices) do
+        Add(facesOfEdges   , [], e);
+    od;
+    complex := SimplicialComplexByUpwardIncidence(edgesOfVertices, facesOfEdges);
     #
     trees := ConnectedComponents(complex);
 
-    return [subdisks, trees, separators];
+    # Compute the remaining component links which are the ones containing a tree.
+    for tree in trees do
+        for i in [1..Length(componentLinks)] do
+            componentLink := componentLinks[i];
+            if Length(componentLink) = 2 then
+                continue;
+            fi;
+
+            separator := componentLink[1];
+
+            for v in Vertices(tree) do
+                if v = separator then
+                    componentLinks[i] := [separator, v];
+                    break;
+                fi;
+            od;
+        od;
+    od;
+
+    return [subdisks, trees, componentLinks];
 end);
 
 BindGlobal( "__SIMPLICIAL_SymbolDiskStep",
 function(disk, startVertex, firstEdge)
-    local layerInterconnects, layerDirections, boundaryWalkRet, findSubdisksRet,
-          boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
-          newStartVertex, newFirstEdge, shrinkedDisk, subdisks, diskConnects;
+    local layerPathDirections, layerComponentLinks, nextLayerConnects,
+          boundaryWalkRet, findSubdisksRet, boundaryVertexPath,
+          boundaryVertexDegrees, faceByBoundaryEdge, newStartVertex, newFirstEdge,
+          shrinkedDisk, subdisks, trees, componentLinks;
 
-    layerInterconnects := [];
-    layerDirections    := [];
+    layerPathDirections := [];
+    layerComponentLinks := [];
+    nextLayerConnects   := [];
 
     # TODO: Build while loop from here
 
     boundaryWalkRet := __SIMPLICIAL_DiskBoundaryWalk(disk, startVertex, firstEdge);
-
+    #
     boundaryVertexPath    := boundaryWalkRet[1];
     boundaryVertexDegrees := boundaryWalkRet[2];
     faceByBoundaryEdge    := boundaryWalkRet[3];
     newStartVertex        := boundaryWalkRet[4];
     newFirstEdge          := boundaryWalkRet[5];
 
-    Add(layerInterconnects, [newStartVertex, startVertex]);
-    Add(layerDirections   , firstEdge);
+    Add(nextLayerConnects  , [newStartVertex, startVertex]);
+    Add(layerPathDirections, firstEdge);
 
     startVertex := newStartVertex;
     firstEdge   := newFirstEdge;
@@ -218,9 +242,10 @@ function(disk, startVertex, firstEdge)
     shrinkedDisk := __SIMPLICIAL_DiskShrink(disk, boundaryVertexPath);
 
     findSubdisksRet := __SIMPLICIAL_FindSubdisks(shrinkedDisk);
-
-    subdisks     := findSubdisksRet[1];
-    diskConnects := findSubdisksRet[2];
+    #
+    subdisks       := findSubdisksRet[1];
+    trees          := findSubdisksRet[2];
+    componentLinks := findSubdisksRet[3];
 end);
 
 InstallMethod( DiskSymbolOfSimplicialComplex,
