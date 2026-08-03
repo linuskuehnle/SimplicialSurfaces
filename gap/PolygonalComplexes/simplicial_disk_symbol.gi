@@ -125,14 +125,15 @@ BindGlobal( "__SIMPLICIAL_DiskSymbol_FindSubdisks",
 function(disk)
     local subdisks, subdisk, trees, tree, separator, componentLinks,
           v, e, vertexHasIsolatedEdge, vertexSCCs, vertexIsTreeComponent,
-          vertices, edges, edgesOfVertices, facesOfEdges, complex;
+          vertices, edges, edgesOfVertices, facesOfEdges, complex,
+          looseEdgesByTree, looseEdges;
 
     # Split into subdisks by computing the strongly connected components.
     subdisks := StronglyConnectedComponents(disk);
 
-    # If disk consists of just one SCC, return early.
-    if Length(subdisks) = 1 then
-        return [[disk], [], []];
+    # If disk consists of just one SCC and that SCC equals disk, return early.
+    if Length(subdisks) = 1 and subdisks[1] = disk then
+        return [[disk], [], [], []];
     fi;
 
     # Find all vertices of a subdisk that match one of the two cases:
@@ -208,43 +209,69 @@ function(disk)
         od;
     od;
 
-    return [subdisks, trees, componentLinks];
+    # Find tree edges that are loose which are edges that have
+    # only one neighbour edge and whose outer vertex is not a separator
+    looseEdgesByTree := [];
+    for tree in trees do
+        looseEdges := [];
+
+        for v in Vertices(tree, v) do
+            if Length(EdgesOfVertex(v, tree)) = 1 and not IsBound(componentLinks[v]) then
+                e := EdgesOfVertex(v, tree)[1];
+                Add(looseEdges, e);
+            fi;
+        od;
+
+        Add(looseEdgesByTree, looseEdges);
+    od;
+
+    return [subdisks, trees, componentLinks, looseEdgesByTree];
 end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildSymbol",
 function(disk, startVertex, firstEdge)
-    local layerPathDirections, layerComponentLinks, nextLayerConnects,
-          boundaryWalkRet, findSubdisksRet, boundaryVertexPath,
+    local layerPathDirections, layerComponentLinks, nextLayerConnects, diskQueue,
+          boundaryWalkRes, findSubdisksRes, boundaryVertexPath,
           boundaryVertexDegrees, faceByBoundaryEdge, newStartVertex, newFirstEdge,
-          shrinkedDisk, subdisks, trees, componentLinks;
+          shrinkedDisk, subdisks, trees, componentLinks, looseEdgesByTree;
 
     layerPathDirections := [];
     layerComponentLinks := [];
     nextLayerConnects   := [];
 
-    # TODO: Build while loop from here
+    diskQueue := [disk];
 
-    boundaryWalkRet := __SIMPLICIAL_DiskSymbol_BoundaryWalk(disk, startVertex, firstEdge);
-    #
-    boundaryVertexPath    := boundaryWalkRet[1];
-    boundaryVertexDegrees := boundaryWalkRet[2];
-    faceByBoundaryEdge    := boundaryWalkRet[3];
-    newStartVertex        := boundaryWalkRet[4];
-    newFirstEdge          := boundaryWalkRet[5];
+    while Length(diskQueue) > 0 do
+        disk := Remove(diskQueue);
 
-    Add(nextLayerConnects  , [newStartVertex, startVertex]);
-    Add(layerPathDirections, firstEdge);
+        boundaryWalkRes := __SIMPLICIAL_DiskSymbol_BoundaryWalk(disk, startVertex, firstEdge);
+        #
+        boundaryVertexPath    := boundaryWalkRes[1];
+        boundaryVertexDegrees := boundaryWalkRes[2];
+        faceByBoundaryEdge    := boundaryWalkRes[3];
+        newStartVertex        := boundaryWalkRes[4];
+        newFirstEdge          := boundaryWalkRes[5];
 
-    startVertex := newStartVertex;
-    firstEdge   := newFirstEdge;
+        Add(nextLayerConnects  , [newStartVertex, startVertex]);
+        Add(layerPathDirections, firstEdge);
 
-    shrinkedDisk := __SIMPLICIAL_DiskSymbol_ShrinkDisk(disk, boundaryVertexPath);
+        startVertex := newStartVertex;
+        firstEdge   := newFirstEdge;
 
-    findSubdisksRet := __SIMPLICIAL_DiskSymbol_FindSubdisks(shrinkedDisk);
-    #
-    subdisks       := findSubdisksRet[1];
-    trees          := findSubdisksRet[2];
-    componentLinks := findSubdisksRet[3];
+        shrinkedDisk := __SIMPLICIAL_DiskSymbol_ShrinkDisk(disk, boundaryVertexPath);
+
+        findSubdisksRes := __SIMPLICIAL_DiskSymbol_FindSubdisks(shrinkedDisk);
+        #
+        subdisks         := findSubdisksRes[1];
+        trees            := findSubdisksRes[2];
+        componentLinks   := findSubdisksRes[3];
+        looseEdgesByTree := findSubdisksRes[4];
+
+        # TODO: Check if we need euler characteristic check for each subdisk
+        # before adding it to the disk queue.
+
+        diskQueue := Concatenation(diskQueue, subdisks);
+    od;
 end);
 
 InstallMethod( DiskSymbolOfSimplicialComplex,
