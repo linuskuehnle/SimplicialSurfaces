@@ -1,8 +1,8 @@
-BindGlobal( "__SIMPLICIAL_DiskBoundaryWalk",
+BindGlobal( "__SIMPLICIAL_DiskSymbol_BoundaryWalk",
 function(disk, startVertex, firstEdge)
     local boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
-          newStartVertex, newFirstEdge, boundaryVertex, boundaryEdge, boundaryFace,
-          edge, foundNewEdge;
+          newStartVertex, newFirstEdge, boundaryVertex, boundaryEdge,
+          boundaryFace, edge, foundNewEdge;
 
     boundaryVertexPath    := [];
     boundaryVertexDegrees := [];
@@ -92,9 +92,10 @@ function(disk, startVertex, firstEdge)
             newStartVertex, newFirstEdge];
 end);
 
-BindGlobal( "__SIMPLICIAL_DiskShrink",
+BindGlobal( "__SIMPLICIAL_DiskSymbol_ShrinkDisk",
 function(disk, boundaryVertexPath)
-    local verticesOfEdges, edgesOfFaces, removedEdgeLabels, i, vertices, edges, newDisk;
+    local verticesOfEdges, edgesOfFaces, removedEdgeLabels, i,
+          vertices, edges, newDisk;
 
     verticesOfEdges   := [];
     removedEdgeLabels := [];
@@ -120,11 +121,12 @@ function(disk, boundaryVertexPath)
     return SimplicialComplexByDownwardIncidence(verticesOfEdges, edgesOfFaces);
 end);
 
-BindGlobal( "__SIMPLICIAL_FindSubdisks",
+BindGlobal( "__SIMPLICIAL_DiskSymbol_FindSubdisks",
 function(disk)
-    local subdisks, subdisk, trees, tree, separators, separator, componentLinks, componentLink, v, e,
-          vertexHasIsolatedEdge, vertexSCCs, vertexIsTreeComponent,
-          i, vertices, edges, edgesOfVertices, facesOfEdges, complex;
+    local subdisks, subdisk, trees, tree, separators, separator,
+          componentLinks, componentLink, v, e, vertexHasIsolatedEdge,
+          vertexSCCs, vertexIsTreeComponent, i, vertices, edges,
+          edgesOfVertices, facesOfEdges, complex;
 
     # Split into subdisks by computing the strongly connected components.
     subdisks := StronglyConnectedComponents(disk);
@@ -181,14 +183,14 @@ function(disk)
 
         Add(edgesOfVertices, edges, v);
     od;
-    #
     facesOfEdges    := [];
     for e in Union(edgesOfVertices) do
         Add(facesOfEdges   , [], e);
     od;
+    #
     complex := SimplicialComplexByUpwardIncidence(edgesOfVertices, facesOfEdges);
     #
-    trees := ConnectedComponents(complex);
+    trees   := ConnectedComponents(complex);
 
     # Compute the remaining component links which are the ones containing a tree.
     for tree in trees do
@@ -212,7 +214,7 @@ function(disk)
     return [subdisks, trees, componentLinks];
 end);
 
-BindGlobal( "__SIMPLICIAL_SymbolDiskStep",
+BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildSymbol",
 function(disk, startVertex, firstEdge)
     local layerPathDirections, layerComponentLinks, nextLayerConnects,
           boundaryWalkRet, findSubdisksRet, boundaryVertexPath,
@@ -225,7 +227,7 @@ function(disk, startVertex, firstEdge)
 
     # TODO: Build while loop from here
 
-    boundaryWalkRet := __SIMPLICIAL_DiskBoundaryWalk(disk, startVertex, firstEdge);
+    boundaryWalkRet := __SIMPLICIAL_DiskSymbol_BoundaryWalk(disk, startVertex, firstEdge);
     #
     boundaryVertexPath    := boundaryWalkRet[1];
     boundaryVertexDegrees := boundaryWalkRet[2];
@@ -239,9 +241,9 @@ function(disk, startVertex, firstEdge)
     startVertex := newStartVertex;
     firstEdge   := newFirstEdge;
 
-    shrinkedDisk := __SIMPLICIAL_DiskShrink(disk, boundaryVertexPath);
+    shrinkedDisk := __SIMPLICIAL_DiskSymbol_ShrinkDisk(disk, boundaryVertexPath);
 
-    findSubdisksRet := __SIMPLICIAL_FindSubdisks(shrinkedDisk);
+    findSubdisksRet := __SIMPLICIAL_DiskSymbol_FindSubdisks(shrinkedDisk);
     #
     subdisks       := findSubdisksRet[1];
     trees          := findSubdisksRet[2];
@@ -280,5 +282,5 @@ function(complex, startVertex, firstEdge)
 
     disk := ShallowCopy(complex);
 
-    __SIMPLICIAL_SymbolDiskStep(disk, startVertex, firstEdge);
+    __SIMPLICIAL_DiskSymbol_BuildSymbol(disk, startVertex, firstEdge);
 end);
