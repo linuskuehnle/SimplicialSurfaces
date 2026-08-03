@@ -123,10 +123,9 @@ end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_FindSubdisks",
 function(disk)
-    local subdisks, subdisk, trees, tree, separators, separator,
-          componentLinks, componentLink, v, e, vertexHasIsolatedEdge,
-          vertexSCCs, vertexIsTreeComponent, i, vertices, edges,
-          edgesOfVertices, facesOfEdges, complex;
+    local subdisks, subdisk, trees, tree, separator, componentLinks,
+          v, e, vertexHasIsolatedEdge, vertexSCCs, vertexIsTreeComponent,
+          vertices, edges, edgesOfVertices, facesOfEdges, complex;
 
     # Split into subdisks by computing the strongly connected components.
     subdisks := StronglyConnectedComponents(disk);
@@ -140,14 +139,14 @@ function(disk)
     # - incidence to at least two different subdisks
     # - incidence to one subdisk and at least one isolated edge
     #
-    vertexHasIsolatedEdge  := List([1..Length(Vertices(disk))], v -> false);
+    vertexHasIsolatedEdge := List([1..Length(Vertices(disk))], v -> false);
     for e in IsolatedEdges(disk) do
         for v in VerticesOfEdge(disk, e) do
             vertexHasIsolatedEdge[v] := true;
         od;
     od;
     #
-    vertexSCCs  := List([1..Length(Vertices(disk))], v -> []);
+    vertexSCCs            := List([1..Length(Vertices(disk))], v -> []);
     for v in Vertices(disk) do
         for subdisk in subdisks do
             if v in Vertices(subdisk) then
@@ -160,11 +159,12 @@ function(disk)
     for v in Vertices(disk) do
         if   Length(vertexSCCs[v]) >= 2 then
             vertexIsTreeComponent[v] := true;
-            Add(separators    , v);
-            Add(componentLinks, vertexSCCs[v]);
+
+            Add(componentLinks, vertexSCCs, v);
         elif vertexHasIsolatedEdge[v] and Length(vertexSCCs[v]) = 1 then
             vertexIsTreeComponent[v] := true;
-            Add(componentLinks, [ vertexSCCs[v][1] ]);
+
+            Add(componentLinks, [ vertexSCCs[v][1] ], v);
         elif Length(vertexSCCs[v]) = 0 then
             vertexIsTreeComponent[v] := true;
         fi;
@@ -194,17 +194,14 @@ function(disk)
 
     # Compute the remaining component links which are the ones containing a tree.
     for tree in trees do
-        for i in [1..Length(componentLinks)] do
-            componentLink := componentLinks[i];
-            if Length(componentLink) = 2 then
+        for separator in [1..Length(componentLinks)] do
+            if not IsBound(componentLinks[separator]) then
                 continue;
             fi;
 
-            separator := componentLink[1];
-
             for v in Vertices(tree) do
                 if v = separator then
-                    componentLinks[i] := [separator, v];
+                    Add(componentLinks[separator], tree);
                     break;
                 fi;
             od;
