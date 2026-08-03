@@ -92,7 +92,7 @@ function(disk, startVertex, firstEdge)
             newStartVertex, newFirstEdge];
 end);
 
-BindGlobal( "__SIMPLICIAL_DiskSymbol_ShrinkDisk",
+BindGlobal( "__SIMPLICIAL_DiskSymbol_PeelDisk",
 function(disk, boundaryVertexPath)
     local verticesOfEdges, edgesOfFaces, removedEdgeLabels, i,
           vertices, edges, newDisk;
@@ -233,7 +233,7 @@ function(disk, startVertex, firstEdge)
     local layerPathDirections, layerComponentLinks, nextLayerConnects, diskQueue,
           boundaryWalkRes, findSubdisksRes, boundaryVertexPath,
           boundaryVertexDegrees, faceByBoundaryEdge, newStartVertex, newFirstEdge,
-          shrinkedDisk, subdisks, trees, componentLinks, looseEdgesByTree;
+          peeledDisk, subdisks, trees, componentLinks, looseEdgesByTree;
 
     layerPathDirections := [];
     layerComponentLinks := [];
@@ -258,9 +258,9 @@ function(disk, startVertex, firstEdge)
         startVertex := newStartVertex;
         firstEdge   := newFirstEdge;
 
-        shrinkedDisk := __SIMPLICIAL_DiskSymbol_ShrinkDisk(disk, boundaryVertexPath);
+        peeledDisk := __SIMPLICIAL_DiskSymbol_PeelDisk(disk, boundaryVertexPath);
 
-        findSubdisksRes := __SIMPLICIAL_DiskSymbol_FindSubdisks(shrinkedDisk);
+        findSubdisksRes := __SIMPLICIAL_DiskSymbol_FindSubdisks(peeledDisk);
         #
         subdisks         := findSubdisksRes[1];
         trees            := findSubdisksRes[2];
