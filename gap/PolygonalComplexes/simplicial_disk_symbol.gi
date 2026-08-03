@@ -267,6 +267,9 @@ function(disk, startVertex, firstEdge)
         componentLinks   := findSubdisksRes[3];
         looseEdgesByTree := findSubdisksRes[4];
 
+        # TODO: Compute loose tree edge connects with boundary vertex path. Mark
+        # both vertices that form the face which connects to the loose tree edge.
+
         # TODO: Check if we need euler characteristic check for each subdisk
         # before adding it to the disk queue.
 
