@@ -2,7 +2,7 @@ BindGlobal( "__SIMPLICIAL_DiskSymbol_BoundaryWalk",
 function(disk, startVertex, firstEdge)
     local boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
           newStartVertex, newFirstEdge, boundaryVertex, boundaryEdge,
-          boundaryFace, edge, foundNewEdge;
+          boundaryFace, innerFace, edge, foundNewEdge;
 
     boundaryVertexPath    := [];
     boundaryVertexDegrees := [];
@@ -17,16 +17,17 @@ function(disk, startVertex, firstEdge)
     fi;
 
     # Create a cyclic vertex path from startVertex in direction of firstEdge
-    boundaryVertex     := 0;
-    boundaryEdge       := firstEdge;
-    while boundaryVertex <> startVertex do
-        if VerticesOfEdge(disk, edge)[1] = boundaryVertex then
-            boundaryVertex := VerticesOfEdge(disk, edge)[2];
-        else
-            boundaryVertex := VerticesOfEdge(disk, edge)[1];
-        fi;
+    boundaryVertex := startVertex;
+    boundaryEdge   := firstEdge;
+    repeat
         Add(boundaryVertexPath   , boundaryVertex);
-        Add(boundaryVertexDegrees, FacesOfEdge(disk, edge));
+        Add(boundaryVertexDegrees, Length(FacesOfEdge(disk, boundaryEdge)));
+
+        if VerticesOfEdge(disk, boundaryEdge)[1] = boundaryVertex then
+            boundaryVertex := VerticesOfEdge(disk, boundaryEdge)[2];
+        else
+            boundaryVertex := VerticesOfEdge(disk, boundaryEdge)[1];
+        fi;
 
         # Find new boundary edge by checking the edges of vertex incidence
         # for the new boundary vertex
@@ -44,49 +45,39 @@ function(disk, startVertex, firstEdge)
         if not foundNewEdge then
             Error("boundary face walk failed: given complex is not a disk\n");
         fi;
-    od;
+    until boundaryVertex = startVertex;
 
     # Collect the face of each boundary edge
-    for boundaryEdge in BoundaryEdges(disk) do
+    for edge in BoundaryEdges(disk) do
         # faces of edge incidence of a boundary edge has exactly one face
-        boundaryFace := FacesOfEdge(disk, boundaryEdge)[1];
+        boundaryFace := FacesOfEdge(disk, edge)[1];
 
-        Add(faceByBoundaryEdge, boundaryFace, boundaryEdge);
+        Add(faceByBoundaryEdge, boundaryFace, edge);
     od;
 
     # Find new starting vertex of enclosed complex (disk/tree)
     newStartVertex := 0;
     #
-    # boundaryEdge is the edge that connects the last two vertices of the
-    # boundary vertex path, so we can use the incident face to find the
-    # next starting vertex and the next first edge
-    boundaryFace   := faceByBoundaryEdge[boundaryEdge];
+    # We need the face incident to the edge connecting the start vertex
+    # and the last vertex relative to the vertex path.
+    boundaryEdge := Filtered( EdgesOfVertex(disk, startVertex),
+                              e -> e <> firstEdge and IsBoundaryEdge(disk, e) )[1];
+    boundaryFace := faceByBoundaryEdge[boundaryEdge];
     for edge in EdgesOfFace(disk, boundaryFace) do
-        if not IsBoundaryEdge(edge) then
+        if not IsBoundaryEdge(disk, edge) then
             if VerticesOfEdge(disk, edge)[1] = startVertex then
                 newStartVertex := VerticesOfEdge(disk, edge)[2];
             else
                 newStartVertex := VerticesOfEdge(disk, edge)[1];
             fi;
+
+            innerFace := Filtered(FacesOfEdge(disk, edge), f -> f <> boundaryFace)[1];
+
+            newFirstEdge := Filtered( EdgesOfFace(disk, innerFace),
+                                      e -> e <> edge and e in EdgesOfVertex(disk, newStartVertex));
             break;
         fi;
     od;
-
-    # Find new first edge of enclosed complex (disk/tree)
-    newFirstEdge := 0;
-    #
-    # If there is no new starting vertex, we do not need to check for
-    # a new first edge
-    if newStartVertex <> 0 then
-        boundaryFace := faceByBoundaryEdge[1];
-
-        for edge in EdgesOfFace(disk, boundaryFace) do
-            if newStartVertex in VerticesOfEdge(disk, edge) then
-                newFirstEdge := edge;
-                break;
-            fi;
-        od;
-    fi;
 
     return [boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
             newStartVertex, newFirstEdge];
@@ -94,31 +85,31 @@ end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_PeelDisk",
 function(disk, boundaryVertexPath)
-    local verticesOfEdges, edgesOfFaces, removedEdgeLabels, i,
+    local peeledVerticesOfEdges, peeledEdgesOfFaces, removedEdgeLabels, i,
           vertices, edges, newDisk;
 
-    verticesOfEdges   := [];
-    removedEdgeLabels := [];
+    peeledVerticesOfEdges := [];
+    removedEdgeLabels     := [];
     for i in [1..Length(VerticesOfEdges(disk))] do
         vertices := VerticesOfEdges(disk)[i];
 
         if not ForAny(vertices, v -> v in boundaryVertexPath) then
-            Add(verticesOfEdges, vertices, i);
+            Add(peeledVerticesOfEdges, vertices, i);
         else
-            Add(removedEdgeLabels, i);
+            Add(removedEdgeLabels    , i);
         fi;
     od;
 
-    edgesOfFaces := [];
+    peeledEdgesOfFaces := [];
     for i in [1..Length(EdgesOfFaces(disk))] do
         edges := EdgesOfFaces(disk)[i];
 
         if not ForAny(edges, e -> e in removedEdgeLabels) then
-            Add(edgesOfFaces, edges, i);
+            Add(peeledEdgesOfFaces, edges, i);
         fi;
     od;
 
-    return SimplicialComplexByDownwardIncidence(verticesOfEdges, edgesOfFaces);
+    return SimplicialComplexByDownwardIncidence(peeledVerticesOfEdges, peeledEdgesOfFaces);
 end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_FindSubdisks",
