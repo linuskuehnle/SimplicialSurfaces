@@ -74,7 +74,8 @@ function(disk, startVertex, firstEdge)
             innerFace := Filtered(FacesOfEdge(disk, edge), f -> f <> boundaryFace)[1];
 
             newFirstEdge := Filtered( EdgesOfFace(disk, innerFace),
-                                      e -> e <> edge and e in EdgesOfVertex(disk, newStartVertex));
+                                      e -> e <> edge and
+                                           e in EdgesOfVertex(disk, newStartVertex))[1];
             break;
         fi;
     od;
