@@ -86,27 +86,30 @@ end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_PeelDisk",
 function(disk, boundaryVertexPath)
-    local peeledVerticesOfEdges, peeledEdgesOfFaces, removedEdgeLabels, i,
-          vertices, edges, newDisk;
+    local isBoundaryVertex, peeledVerticesOfEdges, peeledEdgesOfFaces,
+          isEdgeOfBoundaryVertex, e, f, vertices, edges, newDisk;
+
+    isBoundaryVertex := List(Vertices(disk), v -> v in boundaryVertexPath);
 
     peeledVerticesOfEdges := [];
-    removedEdgeLabels     := [];
-    for i in [1..Length(VerticesOfEdges(disk))] do
-        vertices := VerticesOfEdges(disk)[i];
+    isEdgeOfBoundaryVertex    := [];
+    for e in [1..Length(VerticesOfEdges(disk))] do
+        vertices := VerticesOfEdge(disk, e);
 
-        if not ForAny(vertices, v -> v in boundaryVertexPath) then
-            Add(peeledVerticesOfEdges, vertices, i);
+        if not ForAny(vertices, v -> isBoundaryVertex[v]) then
+            Add(peeledVerticesOfEdges, vertices, e);
+            Add(isEdgeOfBoundaryVertex, false);
         else
-            Add(removedEdgeLabels    , i);
+            Add(isEdgeOfBoundaryVertex, true);
         fi;
     od;
 
     peeledEdgesOfFaces := [];
-    for i in [1..Length(EdgesOfFaces(disk))] do
-        edges := EdgesOfFaces(disk)[i];
+    for f in [1..Length(EdgesOfFaces(disk))] do
+        edges := EdgesOfFace(disk, f);
 
-        if not ForAny(edges, e -> e in removedEdgeLabels) then
-            Add(peeledEdgesOfFaces, edges, i);
+        if not ForAny(edges, e -> isEdgeOfBoundaryVertex[e]) then
+            Add(peeledEdgesOfFaces, edges, f);
         fi;
     od;
 
