@@ -118,9 +118,9 @@ end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_FindSubdisks",
 function(disk)
-    local subdisks, subdisk, trees, tree, separator, componentLinks,
+    local subdisks, subdisk, trees, tree, separator, vertexComponentLinks,
           v, e, vertexHasIsolatedEdge, vertexSCCs, vertexIsTreeComponent,
-          vertices, edges, edgesOfVertices, facesOfEdges, complex,
+          vertices, isolatedEdges, edgesOfVertices, facesOfEdges, complex,
           looseEdgesByTree, looseEdges;
 
     # Split into subdisks by computing the strongly connected components.
@@ -146,21 +146,22 @@ function(disk)
     for v in Vertices(disk) do
         for subdisk in subdisks do
             if v in Vertices(subdisk) then
-                Add(vertexSCCs, subdisk, v);
+                Add(vertexSCCs[v], subdisk);
             fi;
         od;
     od;
     #
     vertexIsTreeComponent := List([1..Length(Vertices(disk))], v -> false);
+    vertexComponentLinks  := List([1..Length(Vertices(disk))], v -> []);
     for v in Vertices(disk) do
         if   Length(vertexSCCs[v]) >= 2 then
             vertexIsTreeComponent[v] := true;
 
-            Add(componentLinks, vertexSCCs, v);
+            vertexComponentLinks[v] := vertexSCCs[v];
         elif vertexHasIsolatedEdge[v] and Length(vertexSCCs[v]) = 1 then
             vertexIsTreeComponent[v] := true;
 
-            Add(componentLinks, [ vertexSCCs[v][1] ], v);
+            Add(vertexComponentLinks[v], vertexSCCs[v][1]);
         elif Length(vertexSCCs[v]) = 0 then
             vertexIsTreeComponent[v] := true;
         fi;
@@ -172,32 +173,36 @@ function(disk)
     edgesOfVertices := [];
     for v in [1..Length(EdgesOfVertices(disk))] do
         if vertexIsTreeComponent[v] then
-            edges := EdgesOfVertex(disk, v);
-        else
-            edges := [];
-        fi;
+            if vertexHasIsolatedEdge[v] then
+                isolatedEdges := Filtered(EdgesOfVertex(disk, v), e -> e in IsolatedEdges(disk));
 
-        Add(edgesOfVertices, edges, v);
+                Add(edgesOfVertices, isolatedEdges, v);
+            else
+                Add(edgesOfVertices, [], v);
+            fi;
+        fi;
     od;
+
     facesOfEdges    := [];
     for e in Union(edgesOfVertices) do
-        Add(facesOfEdges   , [], e);
+        Add(facesOfEdges, [], e);
     od;
     #
     complex := SimplicialComplexByUpwardIncidence(edgesOfVertices, facesOfEdges);
     #
-    trees   := ConnectedComponents(complex);
+    trees   := ConnectedComponents(complex); # TODO: find out why ConnectedComponents
+                                             # does not return the trees as expected.
 
     # Compute the remaining component links which are the ones containing a tree.
     for tree in trees do
-        for separator in [1..Length(componentLinks)] do
-            if not IsBound(componentLinks[separator]) then
+        for separator in [1..Length(vertexComponentLinks)] do
+            if Length(vertexComponentLinks) = 0 then
                 continue;
             fi;
 
             for v in Vertices(tree) do
                 if v = separator then
-                    Add(componentLinks[separator], tree);
+                    Add(vertexComponentLinks[separator], tree);
                     break;
                 fi;
             od;
@@ -211,7 +216,7 @@ function(disk)
         looseEdges := [];
 
         for v in Vertices(tree, v) do
-            if Length(EdgesOfVertex(v, tree)) = 1 and not IsBound(componentLinks[v]) then
+            if Length(EdgesOfVertex(v, tree)) = 1 and not IsBound(vertexComponentLinks[v]) then
                 e := EdgesOfVertex(v, tree)[1];
                 Add(looseEdges, e);
             fi;
@@ -220,7 +225,7 @@ function(disk)
         Add(looseEdgesByTree, looseEdges);
     od;
 
-    return [subdisks, trees, componentLinks, looseEdgesByTree];
+    return [subdisks, trees, vertexComponentLinks, looseEdgesByTree];
 end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildSymbol",
