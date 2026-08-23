@@ -207,7 +207,7 @@ function(disk)
     # Compute the remaining component links which are the ones containing a tree.
     for tree in trees do
         for separator in [1..Length(vertexComponentLinks)] do
-            if Length(vertexComponentLinks) = 0 then
+            if Length(vertexComponentLinks[separator]) = 0 then
                 continue;
             fi;
 
@@ -225,8 +225,8 @@ function(disk)
     looseVerticesByTree := [];
     for tree in trees do
         looseVertices := Filtered( Vertices(tree),
-                                   v -> Length(EdgesOfVertex(tree, v)) = 1 and
-                                        not IsBound(vertexComponentLinks[v]) );
+                                   v -> Length(EdgesOfVertex(tree, v) ) = 1 and
+                                        Length(vertexComponentLinks[v]) = 0 );
 
         Add(looseVerticesByTree, looseVertices);
     od;
