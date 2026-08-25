@@ -129,7 +129,7 @@ function(disk)
     local subdisks, subdisk, trees, tree, separator, vertexComponentLinks,
           v, e, vertexHasIsolatedEdge, vertexSCCs, vertexIsTreeComponent,
           vertices, verticesOfEdges, isolatedEdges, complex, comp,
-          looseVerticesByTree, looseVertices;
+          looseVerticesByTree, looseVertices, i;
 
     # Split into subdisks by computing the strongly connected components.
     subdisks := StronglyConnectedComponents(disk);
@@ -152,9 +152,11 @@ function(disk)
     #
     vertexSCCs            := List([1..Length(Vertices(disk))], v -> []);
     for v in Vertices(disk) do
-        for subdisk in subdisks do
+        for i in [1..Length(subdisks)] do
+            subdisk := subdisks[i];
+
             if v in Vertices(subdisk) then
-                Add(vertexSCCs[v], subdisk);
+                Add(vertexSCCs[v], i);
             fi;
         od;
     od;
@@ -205,7 +207,9 @@ function(disk)
     od;
 
     # Compute the remaining component links which are the ones containing a tree.
-    for tree in trees do
+    for i in [1..Length(trees)] do
+        tree := trees[i];
+
         for separator in [1..Length(vertexComponentLinks)] do
             if Length(vertexComponentLinks[separator]) = 0 then
                 continue;
@@ -213,7 +217,7 @@ function(disk)
 
             for v in Vertices(tree) do
                 if v = separator then
-                    Add(vertexComponentLinks[separator], tree);
+                    Add(vertexComponentLinks[separator], Length(subdisks) + i);
                     break;
                 fi;
             od;
@@ -300,6 +304,8 @@ function(disk, startVertex, firstEdge)
 
         diskQueue := Concatenation(diskQueue, subdisks);
     od;
+
+    return Error("Not implemented yet\n");
 end);
 
 
