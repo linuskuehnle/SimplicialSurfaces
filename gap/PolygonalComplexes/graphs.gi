@@ -6,33 +6,41 @@
 
 BindGlobal( "__SIMPLICIAL_IncidenceGraph",
     function(complex)
-        local maxVertex, maxEdge, maxFace, edgeList, colourList, v, e, f,
-                colSet, vertexList, verts;
+        local lastOrZero, maxVertex, maxEdge, edgeList,
+              colourList, vertexList, verts, e, f;
 
-            maxVertex := VerticesAttributeOfComplex(complex)[NumberOfVertices(complex)];
-            maxEdge := Edges(complex)[NumberOfEdges(complex)];
+        lastOrZero := function(list)
+            if IsEmpty(list) then
+                return 0;
+            fi;
+            return list[Length(list)];
+        end;
 
-            vertexList := ShallowCopy( VerticesAttributeOfComplex(complex) );
-            edgeList := [];
-            colourList := ListWithIdenticalEntries( NumberOfVertices(complex), 0 );
+        maxVertex := lastOrZero( VerticesAttributeOfComplex(complex) );
+        maxEdge   := lastOrZero( Edges(complex) );
 
-            for e in Edges(complex) do
-                # There are two vertices for each edge
-                verts := VerticesOfEdges(complex)[e];
-                Append( edgeList, [ [verts[1], maxVertex+e], [verts[2], maxVertex+e] ] );
+        vertexList := ShallowCopy( VerticesAttributeOfComplex(complex) );
+        colourList := ListWithIdenticalEntries( NumberOfVertices(complex), 0 );
+        edgeList   := [];
+
+        for e in Edges(complex) do
+            # There are two vertices for each edge
+            verts := VerticesOfEdges(complex)[e];
+            Append( edgeList, [ [verts[1], maxVertex + e],
+                                [verts[2], maxVertex + e] ] );
+        od;
+        Append( vertexList, Edges(complex) + maxVertex );
+        Append( colourList, ListWithIdenticalEntries( NumberOfEdges(complex), 1 ) );
+
+        for f in Faces(complex) do
+            for e in EdgesOfFaces(complex)[f] do
+                Add( edgeList, [ maxVertex + e, maxVertex + maxEdge + f ] );
             od;
-            Append(vertexList, Edges(complex) + maxVertex);
-            Append(colourList, ListWithIdenticalEntries( NumberOfEdges(complex), 1 ));
+        od;
+        Append( vertexList, Faces(complex) + maxVertex + maxEdge );
+        Append( colourList, ListWithIdenticalEntries( NumberOfFaces(complex), 2 ) );
 
-            for f in Faces(complex) do
-                Add(colourList, 2); # done manually since NumberOfFaces is not necessarily computed
-                for e in EdgesOfFaces(complex)[f] do
-                    Add( edgeList, [maxVertex + e, maxVertex + maxEdge + f] );
-                od;
-            od;
-            Append(vertexList, Faces(complex) + maxVertex + maxEdge);
-
-            return [edgeList, colourList, vertexList ];
+        return [ edgeList, colourList, vertexList ];
     end
 );
 
@@ -660,15 +668,18 @@ if IsPackageMarkedForLoading("NautyTracesInterface", ">=0") then
 InstallMethod( AutomorphismGroupOnVertices, "for a polygonal complex",
     [IsTwistedPolygonalComplex],
     function(complex)
-        local aut, grp, gens, g;
+        local gens, g, isolatedVertices;
 
-        aut := AutomorphismGroup(complex);
-        gens := [];
-        for g in GeneratorsOfGroup(aut) do
-            Add( gens, __SIMPLICIAL_RestrictToVertices(complex, g) );
-        od;
+        gens := List( GeneratorsOfGroup( AutomorphismGroup(complex) ),
+                      g -> __SIMPLICIAL_RestrictToVertices(complex, g) );
 
-        return Group( gens );
+        # Isolated vertices lie in no chamber, but may be permuted freely
+        isolatedVertices := IsolatedVertices(complex);
+        if Length(isolatedVertices) > 1 then
+            Append( gens, GeneratorsOfGroup( SymmetricGroup(isolatedVertices) ) );
+        fi;
+
+        return GroupByGenerators( gens, () );
     end
 );
 InstallMethod( AutomorphismGroupOnEdges, "for a polygonal complex",
@@ -677,10 +688,8 @@ InstallMethod( AutomorphismGroupOnEdges, "for a polygonal complex",
         local aut, grp, gens, g;
 
         aut := AutomorphismGroup(complex);
-        gens := [];
-        for g in GeneratorsOfGroup(aut) do
-            Add( gens, __SIMPLICIAL_RestrictToEdges(complex, g) );
-        od;
+        gens := List( GeneratorsOfGroup( AutomorphismGroup(aut) ),
+                      g -> __SIMPLICIAL_RestrictToEdges(complex, g) );
 
         return Group( gens );
     end
