@@ -376,12 +376,27 @@ if IsPackageMarkedForLoading("NautyTracesInterface", ">=0") then
               return false;
         fi;
 
+        if IsNotTwisted(complex1) <> IsNotTwisted(complex2) then
+            return false;
+        fi;
+        if IsNotTwisted(complex1) then
+            return IsomorphismGraphs( 
+                IncidenceNautyGraph(complex1),
+                IncidenceNautyGraph(complex2)) <> fail;
+        fi;
+
         return IsomorphismGraphs( 
             ChamberAdjacencyGraph(complex1),
             ChamberAdjacencyGraph(complex2)) <> fail;
         end
     );
 
+    InstallMethod( AutomorphismGroup, "for a polygonal complex", 
+        [IsPolygonalComplex],
+        function(complex)
+            return AutomorphismGroup( IncidenceNautyGraph(complex) );
+        end
+    );
     InstallMethod( AutomorphismGroup, "for a twisted polygonal complex", 
         [IsTwistedPolygonalComplex],
         function(complex)
@@ -608,57 +623,110 @@ fi;
 ##      Automorphism group
 ##
 
-BindGlobal( "__SIMPLICIAL_RestrictToVertices",
-    function(complex, g)
-        local maxVert, permList, c, vOfC;
+# For polygonal complexes, AutomorphismGroup acts on the node labels of
+# IncidenceNautyGraph (see __SIMPLICIAL_IncidenceGraph):
+#   vertex v -> v,  edge e -> maxVertex + e,  face f -> maxVertex + maxEdge + f
+# For twisted polygonal complexes it acts on the chambers.
 
-        maxVert := Maximum(Vertices(complex));
-        permList := [1..maxVert];
-        vOfC := VerticesOfChambers(complex);
-        for c in Chambers(complex) do
-            permList[vOfC[c]] := vOfC[c^g];
+BindGlobal( "__SIMPLICIAL_IncidenceLabelOffsets",
+    function(complex)
+        local vertices, edges, maxVertex, maxEdge;
+
+        vertices := VerticesAttributeOfComplex(complex);
+        edges    := Edges(complex);
+        maxVertex := 0;
+        if not IsEmpty(vertices) then
+            maxVertex := vertices[Length(vertices)];
+        fi;
+        maxEdge := 0;
+        if not IsEmpty(edges) then
+            maxEdge := edges[Length(edges)];
+        fi;
+        return [ 0, maxVertex, maxVertex + maxEdge ];
+    end
+);
+
+# Restrict g to the labels elements + shift and translate back to elements
+BindGlobal( "__SIMPLICIAL_RestrictShifted",
+    function(g, elements, shift)
+        local permList, x;
+
+        if IsEmpty(elements) then
+            return ();
+        fi;
+        permList := [ 1 .. elements[Length(elements)] ];
+        for x in elements do
+            permList[x] := (x + shift)^g - shift;
         od;
         return PermList(permList);
     end
 );
-BindGlobal( "__SIMPLICIAL_RestrictToEdges",
-    function(complex,  g)
-        local maxEdge, permList, c, eOfC;
 
-        maxEdge := Maximum(Edges(complex));
-        permList := [1..maxEdge];
-        eOfC := EdgesOfChambers(complex);
+# Chamber-based restriction for twisted polygonal complexes
+BindGlobal( "__SIMPLICIAL_RestrictChambers",
+    function(complex, g, elements, xOfChambers)
+        local permList, c;
+
+        if IsEmpty(elements) then
+            return ();
+        fi;
+        permList := [ 1 .. Maximum(elements) ];
         for c in Chambers(complex) do
-            permList[eOfC[c]] := eOfC[c^g];
+            permList[ xOfChambers[c] ] := xOfChambers[ c^g ];
         od;
         return PermList(permList);
+    end
+);
+
+BindGlobal( "__SIMPLICIAL_RestrictToVertices",
+    function(complex, g)
+        if IsNotTwisted(complex) then
+            return __SIMPLICIAL_RestrictShifted( g,
+                VerticesAttributeOfComplex(complex),
+                __SIMPLICIAL_IncidenceLabelOffsets(complex)[1] );
+        fi;
+        return __SIMPLICIAL_RestrictChambers( complex, g,
+            VerticesAttributeOfComplex(complex), VerticesOfChambers(complex) );
+    end
+);
+
+BindGlobal( "__SIMPLICIAL_RestrictToEdges",
+    function(complex, g)
+        if IsNotTwisted(complex) then
+            return __SIMPLICIAL_RestrictShifted( g,
+                Edges(complex),
+                __SIMPLICIAL_IncidenceLabelOffsets(complex)[2] );
+        fi;
+        return __SIMPLICIAL_RestrictChambers( complex, g,
+            Edges(complex), EdgesOfChambers(complex) );
     end
 );
 
 BindGlobal( "__SIMPLICIAL_RestrictToFaces",
     function(complex, g)
-        local maxFace, permList, c, fOfC;
-
-        maxFace := Maximum(Faces(complex));
-        permList := [1..maxFace];
-        fOfC := FacesOfChambers(complex);
-        for c in Chambers(complex) do
-            permList[fOfC[c]] := fOfC[c^g];
-        od;
-        return PermList(permList);
+        if IsNotTwisted(complex) then
+            return __SIMPLICIAL_RestrictShifted( g,
+                Faces(complex),
+                __SIMPLICIAL_IncidenceLabelOffsets(complex)[3] );
+        fi;
+        return __SIMPLICIAL_RestrictChambers( complex, g,
+            Faces(complex), FacesOfChambers(complex) );
     end
 );
 
-InstallMethod( DisplayAsAutomorphism, 
+InstallMethod( DisplayAsAutomorphism,
     "for a polygonal complex and a permutation",
     [IsTwistedPolygonalComplex, IsPerm],
     function(complex, perm)
         local autVert, autEdge, autFace;
 
         autVert := __SIMPLICIAL_RestrictToVertices(complex, perm);
-        autEdge := __SIMPLICIAL_RestrictToEdges(complex, perm );
+        autEdge := __SIMPLICIAL_RestrictToEdges(complex, perm);
         autFace := __SIMPLICIAL_RestrictToFaces(complex, perm);
 
+        if autVert = fail or autEdge = fail or autFace = fail then
+            return fail;
+        fi;
         return [autVert, autEdge, autFace];
     end
 );
