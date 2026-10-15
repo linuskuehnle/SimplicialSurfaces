@@ -797,11 +797,11 @@ BindGlobal( "__SIMPLICIAL_CounterName",
 
         if big then
             nameList := ["CounterOfVertices", "CounterOfEdges", 
-                "CounterOfFaces", "CounterOfButterlies",
+                "CounterOfFaces", "CounterOfButterflies",
                 "CounterOfUmbrellas", "CounterOfThreeFaces","CounterOfVerticesByAngle", "Counter"];
         else
             nameList := ["counter of vertices", "counter of edges", 
-                "counter of faces", "counter of butterlies",
+                "counter of faces", "counter of butterflies",
                 "counter of umbrellas", "counter of three faces","counter of vertices by angle", "counter"];
         fi;
 
@@ -828,7 +828,7 @@ BindGlobal( "__SIMPLICIAL_CounterName",
 InstallMethod(TypeOfCounter, "for a counter",
 	[IsCounter],
 	function(counter)
-		 Print(__SIMPLICIAL_CounterName(counter,true)); 
+		return __SIMPLICIAL_CounterName(counter,true); 
 	end
 );
 

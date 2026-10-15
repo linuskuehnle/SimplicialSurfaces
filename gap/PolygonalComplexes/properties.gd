@@ -153,6 +153,7 @@ DeclareAttribute( "EulerCharacteristic", IsTwistedPolygonalComplex );
 #! @EndExampleSession
 #!
 #! @Arguments complex
+#! @Returns true or false
 DeclareProperty( "IsClosedComplex", IsTwistedPolygonalComplex and IsNotEdgeRamified );
 #! @Arguments surf
 DeclareProperty( "IsClosedSurface", IsPolygonalSurface );
@@ -168,6 +169,7 @@ DeclareProperty( "IsClosedSurface", IsPolygonalSurface );
 #! Example for simplex rings can be found in <Ref Subsect="SimplexRingByIsomorphismType"/>
 #!
 #! @Arguments complex
+#! @Returns true or false
 DeclareProperty( "IsSimplexRing", IsTwistedPolygonalComplex);
 #! @EndGroup
 
@@ -181,6 +183,7 @@ DeclareProperty( "IsSimplexRing", IsTwistedPolygonalComplex);
 #! Example for simplex rings can be found in <Ref Subsect="SimplexStringByIsomorphismType"/>.
 #!
 #! @Arguments complex
+#! @Returns true or false
 DeclareProperty( "IsSimplexString", IsTwistedPolygonalComplex);
 #! @EndGroup
 
@@ -197,6 +200,7 @@ DeclareProperty( "IsSimplexString", IsTwistedPolygonalComplex);
 #! @EndExampleSession
 #!
 #! @Arguments simplex ring
+#! @Returns a list
 DeclareAttribute( "FaceListOfSimplexRing", IsSimplexRing);
 #! @EndGroup
 
@@ -213,6 +217,7 @@ DeclareAttribute( "FaceListOfSimplexRing", IsSimplexRing);
 #! @EndExampleSession
 #!
 #! @Arguments simplex string
+#! @Returns a list
 DeclareAttribute( "FaceListOfSimplexString", IsSimplexString);
 #! @EndGroup
 
@@ -731,7 +736,7 @@ DeclareAttribute( "TotalInnerDefect", IsSimplicialSurface );
 #! > [2,4,6],[3,5,7],[3,6,7]];;
 #! gap> s:=SimplicialSurfaceByVerticesInFaces(vof);;
 #! gap> counter:=CounterOfButterflies(s);
-#! counter of butterlies ([ [ [ 4, 4 ], [ 5, 5 ] ], [ [ 4, 5 ], [ 4, 4 ] ] ]
+#! counter of butterflies ([ [ [ 4, 4 ], [ 5, 5 ] ], [ [ 4, 5 ], [ 4, 4 ] ] ]
 #! degrees, and [ 5, 10 ] multiplicities) 
 #! gap> ListCounter(counter);
 #! [ [ [ [ 4, 4 ], [ 5, 5 ] ], 5 ], [ [ [ 4, 5 ], [ 4, 4 ] ], 10 ] ]
@@ -884,9 +889,10 @@ DeclareAttribute("CounterOfUmbrellas",IsClosedSurface and IsSimplicialSurface);
 #! @BeginExampleSession
 #! gap> counter:=CounterOfVertices(fiveStar);;
 #! gap> TypeOfCounter(counter);
-#! CounterOfVertices
+#! "CounterOfVertices"
 #! @EndExampleSession
 #! 
+#! @Returns a String
 #! @Arguments counter
 DeclareOperation("TypeOfCounter", [IsCounter]);
 #! @EndGroup
@@ -1019,32 +1025,6 @@ DeclareOperation("DegreesOfMultiplicity",[IsCounter, IsPosInt]);
 #! @EndExampleSession
 #! @Arguments complex
 DeclareProperty( "IsFaceHomogeneous", IsTwistedPolygonalComplex );
-#! @EndGroup
-
-#! @BeginGroup IsFacePure
-#! @Description
-#! Check whether all vertices and edges in this twisted polygonal complex are incident
-#! to any face of the complex.
-#!
-#! A tetrahedron is face pure:
-#! @BeginExampleSession
-#! gap> IsFacePure(Tetrahedron());
-#! true
-#! @EndExampleSession
-#! A complex with an isolated vertex is not face pure, since the isolated vertex is not
-#! incident to any edge or face:
-#! @BeginExampleSession
-#! gap> tetra := Tetrahedron();;
-#! gap> Vertices(tetra);
-#! [ 1 .. 4 ]
-#! gap> isolatedVertices := [5];;
-#! gap> verticesOfFaces := VerticesOfFaces(tetra);;
-#! gap> complex := SimplicialComplexByVerticesInFaces(isolatedVertices, verticesOfFaces);
-#! simplicial complex (5 vertices, 6 edges, and 4 faces)
-#! gap> IsFacePure(complex);
-#! false
-#! @EndExampleSession
-DeclareProperty( "IsFacePure", IsTwistedPolygonalComplex );
 #! @EndGroup
 
 
