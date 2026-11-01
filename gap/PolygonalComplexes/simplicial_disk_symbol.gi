@@ -84,15 +84,15 @@ function(disk, startVertex, firstEdge)
             newStartVertex, newFirstEdge];
 end);
 
-BindGlobal( "__SIMPLICIAL_DiskSymbol_PeelDisk",
+BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildCore",
 function(disk, boundaryVertexPath)
     local isBoundaryVertex, peeledVerticesOfEdges, peeledEdgesOfFaces,
           isEdgeOfBoundaryVertex, e, f, vertices, edges, newDisk;
 
     isBoundaryVertex := List(Vertices(disk), v -> v in boundaryVertexPath);
 
-    peeledVerticesOfEdges := [];
-    isEdgeOfBoundaryVertex    := [];
+    peeledVerticesOfEdges  := [];
+    isEdgeOfBoundaryVertex := [];
     for e in [1..Length(VerticesOfEdges(disk))] do
         vertices := VerticesOfEdge(disk, e);
 
@@ -116,19 +116,11 @@ function(disk, boundaryVertexPath)
     return SimplicialComplexByDownwardIncidence(peeledVerticesOfEdges, peeledEdgesOfFaces);
 end);
 
-
-# For load: Create a binding for "__SIMPLICIAL_AbstractConnectedComponent"
-# and unbind it right after the binding of "__SIMPLICIAL_AbstractConnectedComponent"
-# so "__SIMPLICIAL_AbstractConnectedComponent" does not cause an error on load
-# in "__SIMPLICIAL_AbstractConnectedComponent".
-# This is necessary as connectivity.gi that actually globally binds
-# "__SIMPLICIAL_AbstractConnectedComponent" is read after this file.
-__SIMPLICIAL_AbstractConnectedComponent := function() end;
-BindGlobal( "__SIMPLICIAL_DiskSymbol_FindSubdisks",
+BindGlobal( "__SIMPLICIAL_DiskSymbol_FindSubcomponents",
 function(disk)
     local subdisks, subdisk, trees, tree, separator, vertexComponentLinks,
           v, e, vertexHasIsolatedEdge, vertexSCCs, vertexIsTreeComponent,
-          vertices, verticesOfEdges, isolatedEdges, complex, comp,
+          verts, treeVerticesOfEdges, treeComplex,
           looseVerticesByTree, looseVertices, i;
 
     # Split into subdisks by computing the strongly connected components.
@@ -179,32 +171,22 @@ function(disk)
 
     # Derive trees
     #
-    trees := [];
-    #
-    # Build isolated vertices complexes
-    #
-    for v in Vertices(disk) do
-        if Length(vertexSCCs[v]) >= 2 then
-            complex := SimplicialComplexByDownwardIncidence([v], [], []);
-
-            Add(trees, complex);
+    treeVerticesOfEdges := [];
+    for e in [1..Length(VerticesOfEdges(disk))] do
+        if not IsBound(VerticesOfEdges(disk)[e]) then
+            continue;
         fi;
+        verts := VerticesOfEdge(disk, e);
+
+        if not ForAll( verts, v -> vertexIsTreeComponent[v] ) then
+            continue;
+        fi;
+
+        Add(treeVerticesOfEdges, verts, e);
     od;
     #
-    # Build isolated edge complexes
-    #
-    isolatedEdges := IsolatedEdges(disk);
-    while Length(isolatedEdges) > 0 do
-        comp := __SIMPLICIAL_AbstractConnectedComponent( isolatedEdges,
-                                                         VerticesOfEdges(disk),
-                                                         isolatedEdges[1] );
-
-        verticesOfEdges := List(comp, e -> VerticesOfEdge(disk, e));
-        complex         := SimplicialComplexByDownwardIncidence(verticesOfEdges, []);
-        Add(trees, complex);
-
-        isolatedEdges := Difference(isolatedEdges, comp);
-    od;
+    treeComplex := SimplicialComplexByDownwardIncidence( treeVerticesOfEdges, [] );
+    trees       := ConnectedComponents(treeComplex);
 
     # Compute the remaining component links which are the ones containing a tree.
     for i in [1..Length(trees)] do
@@ -225,7 +207,7 @@ function(disk)
     od;
 
     # Find tree vertices that are loose which are vertices that have
-    # only one incident edge and is not a separator
+    # only one incident edge and are not a separator.
     looseVerticesByTree := [];
     for tree in trees do
         looseVertices := Filtered( Vertices(tree),
@@ -237,32 +219,31 @@ function(disk)
 
     return [subdisks, trees, vertexComponentLinks, looseVerticesByTree];
 end);
-# s.o.
-Unbind(__SIMPLICIAL_AbstractConnectedComponent);
 
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_HookLooseVertices",
 function(disk, looseVertices, boundaryVertexPath)
-    local v, hookVertices, hookVerticesByVertex;
+    local v, hookVertices, hookVerticesByLooseVertex;
 
-    hookVerticesByVertex := [];
+    hookVerticesByLooseVertex := [];
     for v in looseVertices do
         hookVertices := Filtered( NeighbourVerticesOfVertex(disk, v),
                                   n -> n in boundaryVertexPath );
 
-        Add(hookVerticesByVertex, hookVertices, v);
+        Add(hookVerticesByLooseVertex, hookVertices, v);
     od;
 
-    return hookVerticesByVertex;
+    return hookVerticesByLooseVertex;
 end);
 
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildSymbol",
 function(disk, startVertex, firstEdge)
     local layerPathDirections, layerComponentLinks, nextLayerConnects, diskQueue,
-          boundaryWalkRes, findSubdisksRes, boundaryVertexPath,
+          boundaryWalkRes, findSubCompsRes, boundaryVertexPath,
           boundaryVertexDegrees, faceByBoundaryEdge, newStartVertex, newFirstEdge,
-          peeledDisk, subdisks, trees, componentLinks, looseVerticesByTree;
+          peeledDisk, subdisks, trees, componentLinks, looseVerticesByTree,
+          looseVerts, hookVertsByLooseVert;
 
     layerPathDirections := [];
     layerComponentLinks := [];
@@ -287,17 +268,21 @@ function(disk, startVertex, firstEdge)
         startVertex := newStartVertex;
         firstEdge   := newFirstEdge;
 
-        peeledDisk := __SIMPLICIAL_DiskSymbol_PeelDisk(disk, boundaryVertexPath);
+        peeledDisk := __SIMPLICIAL_DiskSymbol_BuildCore(disk, boundaryVertexPath);
 
-        findSubdisksRes := __SIMPLICIAL_DiskSymbol_FindSubdisks(peeledDisk);
+        findSubCompsRes := __SIMPLICIAL_DiskSymbol_FindSubcomponents(peeledDisk);
         #
-        subdisks            := findSubdisksRes[1];
-        trees               := findSubdisksRes[2];
-        componentLinks      := findSubdisksRes[3];
-        looseVerticesByTree := findSubdisksRes[4];
+        subdisks            := findSubCompsRes[1];
+        trees               := findSubCompsRes[2];
+        componentLinks      := findSubCompsRes[3];
+        looseVerticesByTree := findSubCompsRes[4];
 
-        # TODO: Compute loose tree edge connects with boundary vertex path. Mark
-        # both vertices that form the face which connects to the loose tree edge.
+        looseVerts := Union(looseVerticesByTree);
+        hookVertsByLooseVert := __SIMPLICIAL_DiskSymbol_HookLooseVertices(
+                                    disk,
+                                    looseVerts,
+                                    boundaryVertexPath
+                                );
 
         # TODO: Check if we need euler characteristic check for each subdisk
         # before adding it to the disk queue.
