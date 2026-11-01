@@ -666,7 +666,7 @@ InstallGlobalFunction( "AllSimplicialSpheresEssential",
         local trueArg;
 
         trueArg := __SIMPLICIAL_ParseLibraryQuery(arg, "AllSimplicialSpheresEssential");
-        return __SIMPLICIAL_AccessLibrary(trueArg, "simplicial spheres essential/");
+        return __SIMPLICIAL_AccessLibrary(trueArg, "simplicial_spheres_essential/");
     end
 );
 
@@ -676,17 +676,17 @@ InstallGlobalFunction( "AllGeodesicSelfDualSurfaces",
         local trueArg;
 
         trueArg := __SIMPLICIAL_ParseLibraryQuery(arg, "AllGeodesicSelfDualSurfaces");
-        return __SIMPLICIAL_AccessLibrary(trueArg, "geodesic selfdual surfaces/");
+        return __SIMPLICIAL_AccessLibrary(trueArg, "geodesic_selfdual_surfaces/");
     end
 );
 
 
-InstallGlobalFunction( "AllDiscs",
+InstallGlobalFunction( "AllSimplicialDiscsEssential",
     function(arg)
         local trueArg;
 
-        trueArg := __SIMPLICIAL_ParseLibraryQuery(arg, "AllDiscs");
-        return __SIMPLICIAL_AccessLibrary(trueArg, "discs/");
+        trueArg := __SIMPLICIAL_ParseLibraryQuery(arg, "AllSimplicialDiscs");
+        return __SIMPLICIAL_AccessLibrary(trueArg, "essential_discs/");
     end
 );
 
@@ -730,7 +730,7 @@ InstallGlobalFunction( "AllPlatonicSurfaces",
         local trueArg;
 
         trueArg := __SIMPLICIAL_ParseLibraryQuery(arg, "AllPlatonicSurfaces");
-        return __SIMPLICIAL_AccessLibrary(trueArg, "platonic surfaces/");
+        return __SIMPLICIAL_AccessLibrary(trueArg, "platonic_surfaces/");
     end
 );
 
