@@ -102,25 +102,34 @@ end);
 BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildCore",
 function(disk, boundaryVertexPath)
     local isBoundaryVertex, peeledVerticesOfEdges, peeledEdgesOfFaces,
-          isEdgeOfBoundaryVertex, e, f, vertices, edges, newDisk;
+          isEdgeOfBoundaryVertex, v, e, f, vertices, edges, newDisk;
 
-    isBoundaryVertex := List(Vertices(disk), v -> v in boundaryVertexPath);
+    isBoundaryVertex := [];
+    for v in Vertices(disk) do
+        Add(isBoundaryVertex, v in boundaryVertexPath, v);
+    od;
 
     peeledVerticesOfEdges  := [];
     isEdgeOfBoundaryVertex := [];
     for e in [1..Length(VerticesOfEdges(disk))] do
+        if not IsBound(VerticesOfEdges(disk)[e]) then
+            continue;
+        fi;
         vertices := VerticesOfEdge(disk, e);
 
         if not ForAny(vertices, v -> isBoundaryVertex[v]) then
             Add(peeledVerticesOfEdges, vertices, e);
-            Add(isEdgeOfBoundaryVertex, false);
+            Add(isEdgeOfBoundaryVertex, false, e);
         else
-            Add(isEdgeOfBoundaryVertex, true);
+            Add(isEdgeOfBoundaryVertex, true, e);
         fi;
     od;
 
     peeledEdgesOfFaces := [];
     for f in [1..Length(EdgesOfFaces(disk))] do
+        if not IsBound(EdgesOfFaces(disk)[f]) then
+            continue;
+        fi;
         edges := EdgesOfFace(disk, f);
 
         if not ForAny(edges, e -> isEdgeOfBoundaryVertex[e]) then
@@ -294,7 +303,7 @@ function(disk, startVertex, firstEdge)
         Add(boundaryVertexPathOfDisk   , boundaryVertexPath);
         Add(boundaryVertexDegreesOfDisk, boundaryVertexDegrees);
 
-        if Length(boundaryVertexPath) = 3 then
+        if Length(Faces(disk)) = 1 then
             # TODO: check if this is the correct way of handling disks containing
             # just one face.
             continue;
