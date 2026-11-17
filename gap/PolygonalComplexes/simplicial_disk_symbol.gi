@@ -78,13 +78,15 @@ function(disk, subdisk, boundaryVertexPath, boundaryEdgePath)
 
     # We need the face incident to the edge connecting the start vertex
     # and the last vertex relative to the vertex path.
-    boundaryFace := FacesOfEdge(disk, hookFirstEdge)[1];
+    boundaryFace := FacesOfEdge(disk, boundaryEdgePath[Length(boundaryEdgePath)])[1];
     for e in EdgesOfFace(disk, boundaryFace) do
         if not IsBoundaryEdge(disk, e) then
-            if VerticesOfEdge(disk, e)[1] = hookVertex then
+            if   VerticesOfEdge(disk, e)[1] = hookVertex then
                 startVertex := VerticesOfEdge(disk, e)[2];
-            else
+            elif VerticesOfEdge(disk, e)[2] = hookVertex then
                 startVertex := VerticesOfEdge(disk, e)[1];
+            else
+                continue;
             fi;
 
             innerFace := Filtered(FacesOfEdge(disk, e), f -> f <> boundaryFace)[1];
@@ -159,15 +161,21 @@ function(disk)
     # - incidence to at least two different subdisks
     # - incidence to one subdisk and at least one isolated edge
     #
-    vertexHasIsolatedEdge := List([1..Length(Vertices(disk))], v -> false);
+    vertexHasIsolatedEdge := [];
+    for v in Vertices(disk) do
+        Add(vertexHasIsolatedEdge, false, v);
+    od;
+
     for e in IsolatedEdges(disk) do
         for v in VerticesOfEdge(disk, e) do
             vertexHasIsolatedEdge[v] := true;
         od;
     od;
     #
-    vertexSCCs            := List([1..Length(Vertices(disk))], v -> []);
+    vertexSCCs := [];
     for v in Vertices(disk) do
+        Add(vertexSCCs, [], v);
+
         for i in [1..Length(subdisks)] do
             subdisk := subdisks[i];
 
@@ -177,9 +185,12 @@ function(disk)
         od;
     od;
     #
-    vertexIsTreeComponent := List([1..Length(Vertices(disk))], v -> false);
-    vertexComponentLinks  := List([1..Length(Vertices(disk))], v -> []);
+    vertexIsTreeComponent := [];
+    vertexComponentLinks  := [];
     for v in Vertices(disk) do
+        Add(vertexIsTreeComponent, false, v);
+        Add(vertexComponentLinks , []   , v);
+
         if   Length(vertexSCCs[v]) >= 2 then
             vertexIsTreeComponent[v] := true;
 
@@ -217,7 +228,8 @@ function(disk)
         tree := trees[i];
 
         for separator in [1..Length(vertexComponentLinks)] do
-            if Length(vertexComponentLinks[separator]) = 0 then
+            if not IsBound(vertexComponentLinks[separator]) or
+               Length(vertexComponentLinks[separator]) = 0 then
                 continue;
             fi;
 
@@ -310,6 +322,11 @@ function(disk, startVertex, firstEdge)
         fi;
 
         peeledDisk := __SIMPLICIAL_DiskSymbol_BuildCore(disk, boundaryVertexPath);
+        if Length(Vertices(peeledDisk)) = 1 then
+            # TODO: check if this is the correct way of handling disks whose
+            # core is empty.
+            continue;
+        fi;
         #
         findSubcompsRes := __SIMPLICIAL_DiskSymbol_FindSubcomponents(peeledDisk);
         #
