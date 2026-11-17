@@ -80,6 +80,11 @@ function(disk, startVertex, firstEdge)
         fi;
     od;
 
+    if newStartVertex = 0 then
+        # This happens when disk consists of just one face.
+        newFirstEdge := 0;
+    fi;
+
     return [boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
             newStartVertex, newFirstEdge];
 end);
@@ -272,6 +277,12 @@ function(disk, startVertex, firstEdge)
         faceByBoundaryEdge    := boundaryWalkRes[3];
         newStartVertex        := boundaryWalkRes[4];
         newFirstEdge          := boundaryWalkRes[5];
+        #
+        if newStartVertex = 0 then
+            # TODO: handle this case. it happens when the subdisk consists of
+            # just one face.
+            continue;
+        fi;
         #
         Add(pathDataOfDisk    , [newStartVertex, newFirstEdge]);
         Add(layerConnectOfDisk, [startVertex, newStartVertex]);
