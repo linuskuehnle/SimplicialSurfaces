@@ -309,7 +309,10 @@ InstallMethod( ConnectedComponentsAttributeOfComplex,
 
 	faces := Faces(complex);
 	components := [];
-    isEdgeVisited := List( Edges(complex), e -> false );
+    isEdgeVisited := [];
+    for e in Edges(complex) do
+        Add(isEdgeVisited, false, e);
+    od;
 	while Length(faces) > 0 do
 	    f := faces[1];
         component := ConnectedComponentOfFace(complex, f);
