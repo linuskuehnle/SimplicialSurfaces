@@ -239,20 +239,31 @@ end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildSymbol",
 function(disk, startVertex, firstEdge)
-    local layerPathDirections, layerComponentLinks, nextLayerConnects, diskQueue,
-          boundaryWalkRes, findSubCompsRes, boundaryVertexPath,
+    local allSubdisks, pathDataOfDisk, layerConnectOfDisk, componentLinksOfDisk,
+          hookVertsByLooseVertOfDisk, diskQueue,
+          boundaryWalkRes, findSubcompsRes, boundaryVertexPath,
           boundaryVertexDegrees, faceByBoundaryEdge, newStartVertex, newFirstEdge,
-          peeledDisk, subdisks, trees, componentLinks, looseVerticesByTree,
-          looseVerts, hookVertsByLooseVert;
+          peeledDisk, subdisks, subdisk, trees, newComponentLinks, looseVerticesByTree,
+          looseVerts, hookVertsByLooseVert, diskComponentLinks;
+        
+    allSubdisks := [];
 
-    layerPathDirections := [];
-    layerComponentLinks := [];
-    nextLayerConnects   := [];
+    # pathDataOfDisk stores information on which vertex and with
+    # what edge to begin the vertex boundary walk for each subdisk.
+    pathDataOfDisk       := [[startVertex, firstEdge]];
+    # layerConnectOfDisk stores two vertices connecting an inner and an outer layer.
+    # assume [v1, v2], then v1 is the outer vertex and v2 is the inner vertex.
+    layerConnectOfDisk   := [];
+    componentLinksOfDisk := [];
+    #
+    hookVertsByLooseVertOfDisk := [];
 
     diskQueue := [disk];
 
     while Length(diskQueue) > 0 do
         disk := Remove(diskQueue);
+
+        Add(allSubdisks, disk);
 
         boundaryWalkRes := __SIMPLICIAL_DiskSymbol_BoundaryWalk(disk, startVertex, firstEdge);
         #
@@ -261,34 +272,46 @@ function(disk, startVertex, firstEdge)
         faceByBoundaryEdge    := boundaryWalkRes[3];
         newStartVertex        := boundaryWalkRes[4];
         newFirstEdge          := boundaryWalkRes[5];
-
-        Add(nextLayerConnects  , [newStartVertex, startVertex]);
-        Add(layerPathDirections, firstEdge);
-
+        #
+        Add(pathDataOfDisk    , [newStartVertex, newFirstEdge]);
+        Add(layerConnectOfDisk, [startVertex, newStartVertex]);
+        #
         startVertex := newStartVertex;
         firstEdge   := newFirstEdge;
 
         peeledDisk := __SIMPLICIAL_DiskSymbol_BuildCore(disk, boundaryVertexPath);
-
-        findSubCompsRes := __SIMPLICIAL_DiskSymbol_FindSubcomponents(peeledDisk);
         #
-        subdisks            := findSubCompsRes[1];
-        trees               := findSubCompsRes[2];
-        componentLinks      := findSubCompsRes[3];
-        looseVerticesByTree := findSubCompsRes[4];
+        findSubcompsRes := __SIMPLICIAL_DiskSymbol_FindSubcomponents(peeledDisk);
+        #
+        subdisks            := findSubcompsRes[1];
+        trees               := findSubcompsRes[2];
+        newComponentLinks   := findSubcompsRes[3];
+        looseVerticesByTree := findSubcompsRes[4];
+        #
+        if ForAny(subdisks, subdisk -> EulerCharacteristic(subdisk) <> 1) then
+            Error("euler characteristic of a subdisk does not equal 1\n");
+        fi;
+        #
+        Add(componentLinksOfDisk, newComponentLinks);
 
         looseVerts := Union(looseVerticesByTree);
+        #
         hookVertsByLooseVert := __SIMPLICIAL_DiskSymbol_HookLooseVertices(
                                     disk,
                                     looseVerts,
                                     boundaryVertexPath
                                 );
-
-        # TODO: Check if we need euler characteristic check for each subdisk
-        # before adding it to the disk queue.
+        #
+        if ForAny(hookVertsByLooseVert, hookVerts -> Length(hookVerts) = 0) then
+            Error("a loose vertex has no boundary neighbour vertices\n");
+        fi;
+        #
+        Add(hookVertsByLooseVertOfDisk, hookVertsByLooseVert);
 
         diskQueue := Concatenation(diskQueue, subdisks);
     od;
+
+    # TODO: compute the code.
 
     return Error("Not implemented yet\n");
 end);
@@ -299,7 +322,9 @@ InstallMethod( DiskSymbolOfSimplicialComplex,
 [IsSimplicialComplex, IsPosInt, IsPosInt],
 function(complex, startVertex, firstEdge)
     # Check if complex is a simplicial disk
-    if   EulerCharacteristic(complex) <> 1 then
+    if   not IsSimplicialSurface(complex) then
+        Error("DiskSymbolOfSimplicialComplex: complex must be a simplicial surface\n");
+    elif EulerCharacteristic(complex) <> 1 then
         Error("DiskSymbolOfSimplicialComplex: euler characteristic of complex must be equal to 1\n");
     elif not IsClosedComplex(complex)      then
         Error("DiskSymbolOfSimplicialComplex: complex must be closed\n");
@@ -323,9 +348,9 @@ InstallMethod( DiskSymbolOfSimplicialComplexNC,
 "for a simplicial complex and two positive integers",
 [IsSimplicialComplex, IsPosInt, IsPosInt],
 function(complex, startVertex, firstEdge)
-    local disk;
+    local complexCpy;
 
-    disk := ShallowCopy(complex);
+    complexCpy := ShallowCopy(complex);
 
-    __SIMPLICIAL_DiskSymbol_BuildSymbol(disk, startVertex, firstEdge);
+    __SIMPLICIAL_DiskSymbol_BuildSymbol(complexCpy, startVertex, firstEdge);
 end);
