@@ -2,6 +2,16 @@ This file describes changes in the SimplicialSurfaces package.
 
 ## Unreleased
 
+- Add `AdjacencyMatrixOfEdgeGraph`, the adjacency matrix of the edge graph of
+  a complex
+- Add `AdjacencyMatrixBooleanOfEdgeGraph`, the same matrix as a list of boolean
+  lists for quick adjacency tests
+- Add `IsThreeWaistFree` for triangular complexes, which is computed from the
+  adjacency matrix of the edge graph if every edge is inner and the complex is
+  vertex-faithful
+- `AllThreeWaistsOfComplex` is much faster: it finds the 3-waists from the
+  adjacency matrix of the edge graph instead of checking all triples of inner
+  edges
 - Add simplicial complexes: `IsSimplicialComplex`,
   `SimplicialComplexByDownwardIncidence`, `SimplicialComplexByUpwardIncidence`,
   `SimplicialComplexByVerticesInFaces` (with `NC` variants) and
@@ -14,6 +24,17 @@ This file describes changes in the SimplicialSurfaces package.
   `...ByVerticesInFaces` constructors: they no longer take explicit lists of
   vertices, edges and faces; complex constructors instead accept optional
   isolated vertices (and isolated edges) (#373)
+- Fix `CommonCover` for surfaces with boundary; the `Description` of the
+  record returned by `SixFoldCover` now says that faces are given by edges
+- Fix `AllWildColouredSurfaces` and `AllTameColouredSurfaces` for colour
+  involutions: the vertices of the constructed surfaces could not be computed,
+  boundary edges were given a local symmetry, and trivial involutions (the
+  one-face) caused an error
+- `SixFoldCover` now works for surfaces with boundary: boundary edges lift
+  to boundary edges
+- `CommonCover`: an edge of the cover is a boundary edge if one of the
+  underlying edges is; the local symmetry of a boundary edge is ignored and
+  may be 0
 - Fix `IsIsomorphic` ignoring isolated vertices (#386), and include isolated
   vertices in the `String` of a polygonal complex (#387)
 - `TypeOfCounter` now returns the counter name instead of printing it; fix the

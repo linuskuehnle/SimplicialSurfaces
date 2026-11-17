@@ -26,13 +26,21 @@ BindGlobal( "SIMPLICIAL_TestAll", function()
     __SIMPLICIAL_Test_JoinVertexEdgePaths();
     __SIMPLICIAL_Test_SplitVertexEdgePath();
     __SIMPLICIAL_Test_SplitEdgePath();
+    __SIMPLICIAL_Test_IsolatedConnectedComponents();
     __SIMPLICIAL_Test_Smaller();
     __SIMPLICIAL_Test_Connectivity();
+    __SIMPLICIAL_Test_AdjacencyMatrixOfEdgeGraph();
+    __SIMPLICIAL_Test_AdjacencyMatrixBooleanOfEdgeGraph();
+    __SIMPLICIAL_Test_IsThreeWaistFree();
 
     __SIMPLICIAL_Test_UmbrellaDescriptor();
 
     # VEF-complex
     __SIMPLICIAL_Test_VEF_SpecialisedIncidence();
+
+    # Wild-coloured surfaces
+    __SIMPLICIAL_Test_WildColouredByInvolutions();
+    __SIMPLICIAL_Test_CoversWithBoundary();
 
     # Edge coloured polygonal complex
     __SIMPLICIAL_Test_EdgeColours();
@@ -83,6 +91,9 @@ BindGlobal( "SIMPLICIAL_TestAll", function()
     # Waists
     __SIMPLICIAL_Test_AllTwoWaistsOfComplex();
     __SIMPLICIAL_Test_ClosedVertexEdgePathsOfLengthTwo();
+
+    # Coloured surfaces from involutions
+    __SIMPLICIAL_Test_ColouredSurfacesFromInvolutions();
 
     if __SIMPLICIAL_TestFailure then
         QUIT_GAP(1);
