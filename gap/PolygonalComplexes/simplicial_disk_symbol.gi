@@ -1,19 +1,17 @@
 BindGlobal( "__SIMPLICIAL_DiskSymbol_BoundaryWalk",
 function(disk, startVertex, firstEdge)
-    local boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
+    local boundaryVertexPath, boundaryEdgePath, boundaryVertexDegrees, faceByBoundaryEdge,
           newStartVertex, newFirstEdge, boundaryVertex, boundaryEdge,
           boundaryFace, innerFace, edge, foundNewEdge;
 
     boundaryVertexPath    := [];
+    boundaryEdgePath      := [];
     boundaryVertexDegrees := [];
     faceByBoundaryEdge    := [];
 
     if Length(Faces(disk)) = 0 then
-        newStartVertex := 0;
-        newFirstEdge   := 0;
-
-        return [boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
-                newStartVertex, newFirstEdge];
+        return [ boundaryVertexPath, boundaryEdgePath,
+                 boundaryVertexDegrees, faceByBoundaryEdge ];
     fi;
 
     # Create a cyclic vertex path from startVertex in direction of firstEdge
@@ -21,6 +19,7 @@ function(disk, startVertex, firstEdge)
     boundaryEdge   := firstEdge;
     repeat
         Add(boundaryVertexPath   , boundaryVertex);
+        Add(boundaryEdgePath     , boundaryEdge);
         Add(boundaryVertexDegrees, Length(FacesOfEdge(disk, boundaryEdge)));
 
         if VerticesOfEdge(disk, boundaryEdge)[1] = boundaryVertex then
@@ -55,38 +54,49 @@ function(disk, startVertex, firstEdge)
         Add(faceByBoundaryEdge, boundaryFace, edge);
     od;
 
-    # Find new starting vertex of enclosed complex (disk/tree)
-    newStartVertex := 0;
+    return [ boundaryVertexPath, boundaryEdgePath,
+             boundaryVertexDegrees, faceByBoundaryEdge ];
+end);
+
+BindGlobal( "__SIMPLICIAL_DiskSymbol_FindBoundaryStart",
+function(disk, subdisk, boundaryVertexPath, boundaryEdgePath)
+    local hookVertex, hookFirstEdge, startVertex, firstEdge, v, n, e, boundaryFace, innerFace;
+
+    # First compute hook vertex
+    for v in BoundaryVertices(subdisk) do
+        for n in NeighbourVerticesOfVertex(disk, v) do
+            if n in boundaryVertexPath then
+                if not IsBound(hookVertex) or Position(boundaryVertexPath, n) < Position(boundaryVertexPath, hookVertex) then
+                    hookVertex := n;
+                    break;
+                fi;
+            fi;
+        od;
+    od;
     #
+    hookFirstEdge := boundaryEdgePath[Position(boundaryVertexPath, hookVertex)];
+
     # We need the face incident to the edge connecting the start vertex
     # and the last vertex relative to the vertex path.
-    boundaryEdge := Filtered( EdgesOfVertex(disk, startVertex),
-                              e -> e <> firstEdge and IsBoundaryEdge(disk, e) )[1];
-    boundaryFace := faceByBoundaryEdge[boundaryEdge];
-    for edge in EdgesOfFace(disk, boundaryFace) do
-        if not IsBoundaryEdge(disk, edge) then
-            if VerticesOfEdge(disk, edge)[1] = startVertex then
-                newStartVertex := VerticesOfEdge(disk, edge)[2];
+    boundaryFace := FacesOfEdge(disk, hookFirstEdge)[1];
+    for e in EdgesOfFace(disk, boundaryFace) do
+        if not IsBoundaryEdge(disk, e) then
+            if VerticesOfEdge(disk, e)[1] = hookVertex then
+                startVertex := VerticesOfEdge(disk, e)[2];
             else
-                newStartVertex := VerticesOfEdge(disk, edge)[1];
+                startVertex := VerticesOfEdge(disk, e)[1];
             fi;
 
-            innerFace := Filtered(FacesOfEdge(disk, edge), f -> f <> boundaryFace)[1];
+            innerFace := Filtered(FacesOfEdge(disk, e), f -> f <> boundaryFace)[1];
 
-            newFirstEdge := Filtered( EdgesOfFace(disk, innerFace),
-                                      e -> e <> edge and
-                                           e in EdgesOfVertex(disk, newStartVertex))[1];
+            firstEdge := Filtered( EdgesOfFace(disk, innerFace),
+                                      faceEdge -> faceEdge <> e and
+                                           faceEdge in EdgesOfVertex(disk, startVertex))[1];
             break;
         fi;
     od;
 
-    if newStartVertex = 0 then
-        # This happens when disk consists of just one face.
-        newFirstEdge := 0;
-    fi;
-
-    return [boundaryVertexPath, boundaryVertexDegrees, faceByBoundaryEdge,
-            newStartVertex, newFirstEdge];
+    return [hookVertex, startVertex, firstEdge];
 end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildCore",
@@ -244,51 +254,51 @@ end);
 
 BindGlobal( "__SIMPLICIAL_DiskSymbol_BuildSymbol",
 function(disk, startVertex, firstEdge)
-    local allSubdisks, pathDataOfDisk, layerConnectOfDisk, componentLinksOfDisk,
-          hookVertsByLooseVertOfDisk, diskQueue,
-          boundaryWalkRes, findSubcompsRes, boundaryVertexPath,
+    local allSubdisks, boundaryVertexPathOfDisk, boundaryVertexDegreesOfDisk,
+          pathDataOfDisk, layerConnectsOfDisk, componentLinksOfDisk,
+          hookVertsByLooseVertOfDisk, diskQueue, queueElem,
+          boundaryWalkRes, findSubcompsRes, boundaryVertexPath, boundaryEdgePath,
           boundaryVertexDegrees, faceByBoundaryEdge, newStartVertex, newFirstEdge,
           peeledDisk, subdisks, subdisk, trees, newComponentLinks, looseVerticesByTree,
-          looseVerts, hookVertsByLooseVert, diskComponentLinks;
+          looseVerts, hookVertsByLooseVert, diskComponentLinks, boundaryStartRet,
+          layerConnects, hookVertex;
         
     allSubdisks := [];
 
-    # pathDataOfDisk stores information on which vertex and with
-    # what edge to begin the vertex boundary walk for each subdisk.
-    pathDataOfDisk       := [[startVertex, firstEdge]];
-    # layerConnectOfDisk stores two vertices connecting an inner and an outer layer.
-    # assume [v1, v2], then v1 is the outer vertex and v2 is the inner vertex.
-    layerConnectOfDisk   := [];
+    boundaryVertexPathOfDisk    := [];
+    boundaryVertexDegreesOfDisk := [];
+
+    layerConnectsOfDisk   := [];
     componentLinksOfDisk := [[]]; # first disk does not have any subcomponents.
     #
     hookVertsByLooseVertOfDisk := [];
 
-    diskQueue := [disk];
+    diskQueue := [[disk, startVertex, firstEdge]];
 
     while Length(diskQueue) > 0 do
-        disk := Remove(diskQueue);
+        queueElem := Remove(diskQueue);
+        #
+        disk        := queueElem[1];
+        startVertex := queueElem[2];
+        firstEdge   := queueElem[3];
 
         Add(allSubdisks, disk);
 
         boundaryWalkRes := __SIMPLICIAL_DiskSymbol_BoundaryWalk(disk, startVertex, firstEdge);
         #
         boundaryVertexPath    := boundaryWalkRes[1];
-        boundaryVertexDegrees := boundaryWalkRes[2];
-        faceByBoundaryEdge    := boundaryWalkRes[3];
-        newStartVertex        := boundaryWalkRes[4];
-        newFirstEdge          := boundaryWalkRes[5];
+        boundaryEdgePath      := boundaryWalkRes[2];
+        boundaryVertexDegrees := boundaryWalkRes[3];
+        faceByBoundaryEdge    := boundaryWalkRes[4];
         #
-        if newStartVertex = 0 then
-            # TODO: handle this case. it happens when the subdisk consists of
+        Add(boundaryVertexPathOfDisk   , boundaryVertexPath);
+        Add(boundaryVertexDegreesOfDisk, boundaryVertexDegrees);
+
+        if Length(boundaryVertexPath) = 3 then
+            # TODO: check if this is the correct way of handling disks containing
             # just one face.
             continue;
         fi;
-        #
-        Add(pathDataOfDisk    , [newStartVertex, newFirstEdge]);
-        Add(layerConnectOfDisk, [startVertex, newStartVertex]);
-        #
-        startVertex := newStartVertex;
-        firstEdge   := newFirstEdge;
 
         peeledDisk := __SIMPLICIAL_DiskSymbol_BuildCore(disk, boundaryVertexPath);
         #
@@ -304,6 +314,26 @@ function(disk, startVertex, firstEdge)
         fi;
         #
         Add(componentLinksOfDisk, newComponentLinks);
+        #
+        # Compute each subdisks boundary walk starting vertex and first edge along
+        # with its boundary hook.
+        layerConnects := [];
+        #
+        for subdisk in subdisks do
+            boundaryStartRet := __SIMPLICIAL_DiskSymbol_FindBoundaryStart( disk,
+                                                                           subdisk,
+                                                                           boundaryVertexPath,
+                                                                           boundaryEdgePath );
+            #
+            hookVertex  := boundaryStartRet[1];
+            startVertex := boundaryStartRet[2];
+            firstEdge   := boundaryStartRet[3];
+            #
+            Add(layerConnects, [hookVertex, startVertex, firstEdge]);
+
+            Add(diskQueue, [subdisk, startVertex, firstEdge]);
+        od;
+        Add(layerConnectsOfDisk, layerConnects);
 
         looseVerts := Union(looseVerticesByTree);
         #
@@ -318,8 +348,6 @@ function(disk, startVertex, firstEdge)
         fi;
         #
         Add(hookVertsByLooseVertOfDisk, hookVertsByLooseVert);
-
-        diskQueue := Concatenation(diskQueue, subdisks);
     od;
 
     # TODO: compute the code.
