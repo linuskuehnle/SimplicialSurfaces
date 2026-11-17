@@ -259,7 +259,7 @@ function(disk, startVertex, firstEdge)
     # layerConnectOfDisk stores two vertices connecting an inner and an outer layer.
     # assume [v1, v2], then v1 is the outer vertex and v2 is the inner vertex.
     layerConnectOfDisk   := [];
-    componentLinksOfDisk := [];
+    componentLinksOfDisk := [[]]; # first disk does not have any subcomponents.
     #
     hookVertsByLooseVertOfDisk := [];
 
